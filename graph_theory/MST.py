@@ -6,7 +6,7 @@ from sys import maxsize as max_integer
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 
-def minimum_spanning_tree(data, k = 5, q = 2, f = 2):
+def minimum_spanning_tree(data, k = 3, q = 2, f = 2):
     
     #debug:
     #plt.gca().set_aspect('equal', adjustable='box')
@@ -62,15 +62,12 @@ def minimum_spanning_tree(data, k = 5, q = 2, f = 2):
         
       
     #debug: visualize MST
-    
-    
-    #plt.scatter(data[:, 0], data[:, 1])
+    '''
     x, y= np.nonzero(MST)
-    
     for ole in zip(x, y):    
         plt.plot((data[ole[0], 0], data[ole[1], 0]), (data[ole[0], 1], data[ole[1], 1]), color = 'm')    
     #plt.show()
-    
+    '''
     
     ##########################
     
@@ -102,6 +99,7 @@ def minimum_spanning_tree(data, k = 5, q = 2, f = 2):
     for i, inc in enumerate(inconsistent):
         if inc == 1:
             plt.text((data[x_list[i],0] + data[y_list[i],0])/2, (data[x_list[i],1]  + data[y_list[i],1])/2 , "inc")
+            plt.plot((data[x_list[i],0], data[y_list[i], 0] ), (data[x_list[i],1], data[y_list[i], 1]))
     
     #debug: show in graph weights
     '''for ind, g in enumerate(MST):
@@ -129,7 +127,7 @@ def minimum_spanning_tree(data, k = 5, q = 2, f = 2):
             visited_nodes[s] = 1
             data[s, 2] = cluster_id
             _dfs_util(MST, s, visited_nodes, cluster_id, data)
-        cluster_id += 1
+            cluster_id += 1
     
     return data
 
