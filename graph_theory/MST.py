@@ -137,7 +137,7 @@ def _dfs_util(MST, s, visited_nodes, cluster_id, data):
     for node in adj_nodes[0]:
         if visited_nodes[node] == 0:
             visited_nodes[node] = 1
-            data[node, 2] = cluster_id
+            data[node, -1] = cluster_id
             _dfs_util(MST, node, visited_nodes, cluster_id, data)
     
         
