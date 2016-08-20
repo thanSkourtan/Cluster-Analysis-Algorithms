@@ -12,8 +12,8 @@ n = 60
 data = np.random.randint(n, size = (n, 2))
 
 # We are going to plot the cost against all possible values of theta
-theta1_x = np.arange(0,n)
-theta1_y = np.arange(0,n)
+theta1_x = np.arange(0, n)
+theta1_y = np.arange(0, n)
 
 # Build the weight matrix
 q = 3
