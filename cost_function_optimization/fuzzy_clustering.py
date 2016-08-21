@@ -13,14 +13,18 @@ def fuzzy(data, no_of_clusters, q = 1.25):
     Returns:
         data((m x (n + 1)) 2-d numpy array): the data set with one more column that contains the vector's cluster
         centroids_new((k x n)2-d numpy array): contains the k = no_of_clusters centroids with n features
-        ita(float): a parameter used in possibilistic clustering. 
+        ita(float): a parameter used in possibilistic clustering.
+        centroids_history((l x 2) 2-d numpy array): an array to keep the previous positions of the centroids for 
+                                                    better visualisation of the result. 
     
     '''
     # Initializations
     partition_matrix = np.zeros((len(data), no_of_clusters))
     N = len(data)
-    centroids_old = np.random.choice(np.arange(np.min(data), np.max(data)), size = (no_of_clusters, 2))
+    no_of_features = len(data[0])
+    centroids_old = np.random.choice(np.arange(np.min(data), np.max(data)), size = (no_of_clusters, no_of_features))
     centroids_new = np.zeros(centroids_old.shape) 
+    centroids_history = np.copy(centroids_old)
     
     # A do - while loop implementation in Python, as the loop needs to run at least once
     condition = True
@@ -43,6 +47,7 @@ def fuzzy(data, no_of_clusters, q = 1.25):
             condition = False
         
         centroids_old = np.copy(centroids_new)
+        centroids_history = np.vstack((centroids_history, centroids_old))
     
     # Ita calculation - applied when we use possibilistic clustering
     ita = []
@@ -56,7 +61,7 @@ def fuzzy(data, no_of_clusters, q = 1.25):
     
     
     
-    return data, centroids_new, ita
+    return data, centroids_new, ita, centroids_history
     
 
 
