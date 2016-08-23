@@ -19,8 +19,8 @@ def fuzzy(data, no_of_clusters, q = 1.25):
     
     '''
     # Initializations
-    partition_matrix = np.zeros((len(data), no_of_clusters))
     N = len(data)
+    partition_matrix = np.zeros((N, no_of_clusters))
     no_of_features = len(data[0])
     centroids_old = np.random.choice(np.arange(np.min(data), np.max(data)), size = (no_of_clusters, no_of_features))
     centroids_new = np.zeros(centroids_old.shape) 
@@ -42,7 +42,7 @@ def fuzzy(data, no_of_clusters, q = 1.25):
             centroids_new[i] = np.sum(np.power(partition_matrix[:,[i]], q) * data,axis = 0) / np.sum(np.power(partition_matrix[:,i], q))
         
         # Update the termination criterion where e = 0.00001
-        criterion_array = np.abs(centroids_new - centroids_old) < 0.00001
+        criterion_array = np.absolute(centroids_new - centroids_old) < 0.00001
         if np.any(criterion_array) :
             condition = False
         
