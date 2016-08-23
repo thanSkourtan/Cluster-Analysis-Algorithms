@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
-
+plt.style.use('ggplot')
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 np.random.seed(seed=400)
-n = 60
+n = 50
 
 data = np.random.randint(n, size = (n, 2))
 

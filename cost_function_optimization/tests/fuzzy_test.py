@@ -2,7 +2,8 @@ from sklearn.datasets import *
 import numpy as np
 import matplotlib.pyplot as plt
 from cost_function_optimization import fuzzy_clustering
-from validity_scripts import internal_criteria
+from validity_scripts import internal_criteria, external_criteria
+
 
 import unittest
 
@@ -15,19 +16,25 @@ class Test(unittest.TestCase):
         no_of_clusters= 3
         
         # Create the dataset
-        X, y = make_blobs(n_samples=100, centers= no_of_clusters, n_features=2,random_state=10)
+        X, y = make_blobs(n_samples=8, centers= no_of_clusters, n_features=2,random_state=10)
         
         # Run the clustering algorithm
         X, centroids, ita, centroids_history = fuzzy_clustering.fuzzy(X, no_of_clusters)
         
         # Plotting
-        #plot_data_util(X, centroids, centroids_history, no_of_clusters)
+        plot_data_util(X, centroids, centroids_history, no_of_clusters)
         
         # Examine Cluster Validity
         initial_gamma, list_of_gammas = internal_criteria.internal_validity(X, no_of_clusters)
+        initial_indices, list_of_indices = external_criteria.external_validity(X, no_of_clusters, y)
         
         # Histogram of gammas from internal criteria 
         hist_gamma_internal_criteria(initial_gamma, list_of_gammas)
+        
+        # Histogram of indices for external criteria
+        for i in range(4):
+            hist_gamma_internal_criteria(initial_indices[i], list_of_indices[i, :])
+            
     
         
     @unittest.skip("no")
@@ -43,7 +50,13 @@ class Test(unittest.TestCase):
         X, y = make_moons(n_samples=1000, shuffle = True, noise = 0.1, random_state = 10)
         X, centroids, ita, centroids_history = fuzzy_clustering.fuzzy(X, 2)
         X = plot_data_util(X, centroids, centroids_history, no_of_clusters)
-        
+    
+    
+    # Relative Criteria Clustering
+    #@unittest.skip('no')
+    def testRelativeBlobs(self):
+        pass
+    
     
     
 def plot_data_util(X, centroids, centroids_history ,no_of_clusters):
