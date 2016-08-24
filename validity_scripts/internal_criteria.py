@@ -72,7 +72,7 @@ def monte_carlo(data, no_of_clusters):
             temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
             random_data = np.concatenate((random_data, temp), axis = 1)
             
-        X, centroids, ita, centroids_history = fuzzy_clustering.fuzzy(random_data, no_of_clusters)
+        X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(random_data, no_of_clusters)
         
         list_of_gammas.append(gamma(X))
     

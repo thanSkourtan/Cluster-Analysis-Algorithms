@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from cost_function_optimization import fuzzy_clustering
 from validity_scripts import internal_criteria, external_criteria
 from scipy.stats import norm
+from tqdm import tqdm
 
 import unittest
 
@@ -11,15 +12,15 @@ plt.style.use('ggplot')
 
 class Test(unittest.TestCase):
 
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testBlobs(self):
         no_of_clusters= 6
         
         # Create the dataset
-        X, y = make_blobs(n_samples=50, centers= no_of_clusters, n_features=2,random_state=None)
+        X, y = make_blobs(n_samples=1000, centers= no_of_clusters, n_features=2,random_state=11)
         
         # Run the clustering algorithm
-        X, centroids, ita, centroids_history = fuzzy_clustering.fuzzy(X, no_of_clusters)
+        X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, no_of_clusters)
         
         # Plotting
         plot_data_util(X, centroids, centroids_history, no_of_clusters)
@@ -34,28 +35,61 @@ class Test(unittest.TestCase):
         # Histogram of indices for external criteria
         '''for i in range(4):
             hist_gamma_internal_criteria(initial_indices[i], list_of_indices[i, :])
-        ''' 
+        '''
+        
+        
     
         
     @unittest.skip("no")
     def testCircles(self):
         no_of_clusters = 2
         X, y = make_circles(n_samples=100, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
-        X, centroids, ita, centroids_history = fuzzy_clustering.fuzzy(X, 2)
+        X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, 2)
         plot_data_util(X, centroids, centroids_history, no_of_clusters)
         
     @unittest.skip("no")
     def testMoons(self):
         no_of_clusters = 2
         X, y = make_moons(n_samples=1000, shuffle = True, noise = 0.1, random_state = 10)
-        X, centroids, ita, centroids_history = fuzzy_clustering.fuzzy(X, 2)
+        X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, 2)
         X = plot_data_util(X, centroids, centroids_history, no_of_clusters)
     
     
-    # Relative Criteria Clustering
+    ################################################## Relative Criteria Clustering #########################
+    
     #@unittest.skip('no')
     def testRelativeBlobs(self):
-        pass
+        print('lala')
+        no_of_clusters= 6
+        
+        # Create the dataset
+        X, y = make_blobs(n_samples=1000, centers= no_of_clusters, n_features=2,random_state=11)
+        
+        no_of_clusters_list = [i for i in range(1, 11)]
+        values_of_q = [1.25, 2, 3, 4, 5]
+        PC = np.zeros((len(no_of_clusters_list), len(values_of_q)))
+        PE = np.zeros((len(no_of_clusters_list), len(values_of_q)))
+         
+        for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
+            for j, q_value in enumerate(values_of_q): #edw vazw to q
+                # When X returns it has one more column that needs to be erased
+                X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, total_clusters, q = q_value)
+                # Calculate index
+                PC[i, j] = np.round(1/len(X) * np.sum(np.power(partition_matrix, 2)), 5)
+                PE[i, j] = - 1/len(X) * np.sum(partition_matrix * np.log(partition_matrix))
+        
+        for j in range(len(values_of_q)):
+            plt.plot(no_of_clusters_list, PC[:, j], '--')
+        print(PC)
+        for j in range(len(values_of_q)):
+            plt.plot(no_of_clusters_list, PE[:, j])
+        
+        plt.show()
+        
+    
+    
+    
+    
     
     
     

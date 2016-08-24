@@ -58,7 +58,7 @@ def fuzzy(data, no_of_clusters, q = 1.25):
     assigned_cluster = np.argmax(partition_matrix, axis = 1) 
     data = np.hstack((data, assigned_cluster.reshape(N, 1)))
     
-    return data, centroids_new, ita, centroids_history
+    return data, centroids_new, ita, centroids_history, partition_matrix
     
 
 
