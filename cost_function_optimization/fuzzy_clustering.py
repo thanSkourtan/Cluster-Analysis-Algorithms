@@ -54,12 +54,9 @@ def fuzzy(data, no_of_clusters, q = 1.25):
     for centroid in centroids_new:
         ita.append(np.sum(np.power(partition_matrix[:, [0]],q) * euclidean_distance(data, centroid)) / np.sum(np.power(partition_matrix[:, 0], 2)))
     
-    
     # Assign each vector to a cluster taking the greatest u
     assigned_cluster = np.argmax(partition_matrix, axis = 1) 
     data = np.hstack((data, assigned_cluster.reshape(N, 1)))
-    
-    
     
     return data, centroids_new, ita, centroids_history
     

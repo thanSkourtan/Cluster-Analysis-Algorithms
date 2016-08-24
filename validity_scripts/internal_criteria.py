@@ -1,10 +1,24 @@
-
+from scipy.stats import norm
 from cost_function_optimization import *
 import numpy as np
+from tqdm import tqdm
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 def gamma(data):
+    ''' Calculates the Hubert's Gamma Statistic for the proximity matrix P and Y, where Y (i,j) = 0 
+        if i, j are in the same cluster, 1 otherwise. These inputs are fixed for the internal criteria case
+        so they are integrated into this function.
+    
+    Parameters:
+        data((m x n) 2-d numpy array): a data set of m instances and n features
+    
+    Returns:
+        g(float): the gamma index for P, Y
+        
+    Reference: Pattern Recognition, S. Theodoridis, K. Koutroumbas
+    
+    '''
     N = len(data)
     m = len(data[0])
     
@@ -13,15 +27,13 @@ def gamma(data):
     for point in data:
         P = np.concatenate((P, euclidean_distance(data,point)), axis=1)
     
-    
-    # Calculate the Hubert's Gamma Statistic
-    Y = np.zeros((N, N))
-    
-    for i, d in enumerate(data):
+    # Construct the matrix Y
+    Y = np.ones((N, N))
+    for i, _ in enumerate(data):
         same_cluster_indices = np.where(data[:, m - 1] == data[i, m - 1])
-        # TODO: this second equality can be ommited, it is not searched. We construct half the table this way
-        Y[i, same_cluster_indices[0]] = Y[same_cluster_indices[0], i] = 1
-        
+        Y[i, same_cluster_indices[0]] = 0
+    
+    # Calculate the Hubert's Gamma Statistic    
     M = N * (N - 1) / 2
     total_sum = 0.
     for i in range(N):
@@ -33,12 +45,25 @@ def gamma(data):
 
 
 def monte_carlo(data, no_of_clusters):
+    ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
+        calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
+        
+    Parameters:
+        data((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters(integer): the number of clusters
+    
+    Returns:
+        list_of_gammas(list): the Gamma statistics of all the monte carlo sample distributions
+        
+    '''
     N = len(data)
     m = len(data[0])
     
     # Monte Carlo simulation - create the datasets (random position hypothesis)
     list_of_gammas = []
-    for j in range(100):
+    pbar = tqdm(range(100))
+    pbar.set_description('Monte carlo sim. - internal indices')
+    for _ in pbar:
         random_data = np.empty((N, 0))
         
         for i  in range(m - 1):
@@ -53,18 +78,54 @@ def monte_carlo(data, no_of_clusters):
     
     return list_of_gammas
     
+
+def significance_calc(initial_gamma, list_of_gammas, N):
+    ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
+        calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
         
+    Parameters:
+        initial_gamma(float): the Gamma statistic of the clustering under consideration
+        list_of_gammas(list): the Gamma statistics of all the monte carlo sample distributions
+    
+    Returns:
+        result(string): a string containing the result of the function's computations
+        
+    '''
+    z_statistic = (initial_gamma - np.mean(list_of_gammas))/np.std(list_of_gammas)
+    # Two tailed test
+    if z_statistic <= 0:
+        p_value1 = norm.cdf(z_statistic)
+        p_value2 = 1 - norm.cdf(-z_statistic)
+    else:
+        p_value1 = 1 - norm.cdf(z_statistic)
+        p_value2 = norm.cdf(-z_statistic)
+        
+    if p_value1 + p_value2 < 0.05:
+        result = 'The null hypothesis was rejected for significance level 0.05, with p_value = {:f}'.format(p_value1 + p_value2)
+    else:
+        result = 'The null hypothesis was accepted for significance level 0.05, with p_value = {:f}'.format(p_value1 + p_value2)
+    return result
+
 
 def internal_validity(data, no_of_clusters):
+    ''' A function that wraps the rest of the functions of this module and calls them in the 
+        appropriate order. It could be defined as the only public function of the module. 
+        
+    Parameters:
+        data((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters(integer): the number of clusters
+    
+    Returns:
+        initial_gamma(float): the Gamma statistic of the clustering under consideration
+        list_of_gammas(list): the Gamma statistics of all the monte carlo sample distributions
+        result(string): a string containing the result of the function's computations
+        
+    '''
     initial_gamma = gamma(data)
     list_of_gammas = monte_carlo(data, no_of_clusters)
+    result = significance_calc(initial_gamma, list_of_gammas, len(data))
     
-    # TODO erase 100
-    z_statistic = (initial_gamma - np.mean(list_of_gammas))/(np.std(list_of_gammas)/ np.sqrt(100)) #because std is for samples
-    
-    # TODO do more stuff
-    
-    return initial_gamma, list_of_gammas
+    return initial_gamma, list_of_gammas, result
     
     
     
