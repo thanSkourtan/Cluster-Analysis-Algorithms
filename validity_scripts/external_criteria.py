@@ -1,15 +1,32 @@
-
+from scipy.stats import norm
 from cost_function_optimization import *
 import numpy as np
-import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 def external_indices(data, external_data_info):
+    '''Calculates three indices (rand statistic, jaccard coefficient, Fowlkes and Mallows) based on a matrix P
+       that shows the simmilarity between the clustering under consideration and an external clustering. Also
+       calculates the Hubert's Gamma Statistic for matrices X and Y, where X (i,j) = 1 if i, j are in the same cluster
+       in the clustering under consideration, 0 otherwise and  Y(i,j) = 1 if i, j are in the same cluster
+       in the external clustering,  0 otherwise. 
+       
+    Parameters:
+        data((m x n) 2-d numpy array): a data set of m instances and n features
+        external_data_info(list): the external clustering results
     
-    # Construct the four value table
+    Returns:
+        rand_statistic(float): the rand statistic
+        jaccard_coefficient(float): the jaccard coefficient statistic 
+        fowlkes_and_mallows(float): the Fowlkes and Mallows index
+        gamma(float): the gamma index for X, Y
+        
+    Reference: Pattern Recognition, S. Theodoridis, K. Koutroumbas
+    '''
+    # Construct three matrices. X and Y to be used for Gamma Statistic and P for all other indices
     
     N= len(data)
     m = len(data[0])
-    pair_matrix = np.zeros((N, N))
+    P = np.zeros((N, N))
     X = np.zeros((N, N))
     Y = np.zeros((N, N))
     # 11: same C, same P -> SS
@@ -31,22 +48,21 @@ def external_indices(data, external_data_info):
         P_set = set(P_same_cluster_indices[0])
         complete_set = set([k for k in range(N)])
         
-        
         set_11 = (C_set & P_set) - set([i]) # diagonal should stay 0
         set_22 = complete_set - C_set - P_set
         set_12 = C_set - P_set
         set_21 = P_set - C_set
         
-        pair_matrix[i , list(set_11)] = 11
-        pair_matrix[i , list(set_22)] = 22
-        pair_matrix[i , list(set_12)] = 12
-        pair_matrix[i , list(set_21)] = 21
+        P[i , list(set_11)] = 11
+        P[i , list(set_22)] = 22
+        P[i , list(set_12)] = 12
+        P[i , list(set_21)] = 21
         
-    # Count occurrences. They are the total/ 2 except for 11 where the diagonal must be deleted
-    a = len(np.where(pair_matrix == 11)[0])/2
-    b = len(np.where(pair_matrix == 12)[0])/2
-    c = len(np.where(pair_matrix == 21)[0])/2
-    d = len(np.where(pair_matrix == 22)[0])/2
+    # Count occurrences. They are the total/ 2 
+    a = len(np.where(P == 11)[0])/2
+    b = len(np.where(P == 12)[0])/2
+    c = len(np.where(P == 21)[0])/2
+    d = len(np.where(P == 22)[0])/2
         
     # Calculate all indices
     M = N*(N - 1)/2
@@ -63,15 +79,28 @@ def external_indices(data, external_data_info):
     return rand_statistic, jaccard_coefficient, fowlkes_and_mallows, gamma
 
 def monte_carlo(data, no_of_clusters, external_data_info):
+    ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
+        calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
+        
+    Parameters:
+        data((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters(integer): the number of clusters
+        external_data_info(list): the external clustering results
+    
+    Returns:
+        list_of_indices(list): the calculated indices of all the monte carlo sample distributions
+        
+    '''
     N = len(data)
     m = len(data[0])
     
     # Monte Carlo simulation - create the datasets (random position hypothesis)
     list_of_indices = np.zeros((4, 0)) #cause we have 4 indices
-    for j in range(100):
+    pbar = tqdm(range(100))
+    pbar.set_description('Monte carlo sim. - external indices')
+    
+    for _ in pbar:
         random_data = np.empty((N, 0))
-        #debug
-        print('here')
         
         for i  in range(m - 1):
             max_value = np.amax(data[:, i])
@@ -87,11 +116,59 @@ def monte_carlo(data, no_of_clusters, external_data_info):
     return list_of_indices
 
 
+def significance_calc(initial_indices, list_of_indices):
+    ''' Calculates z-statistic for initial_indices with regards to the normal distribution of list_of_gammas
+        the p_value of the z-statistic and based on the results accepts or rejects the null hypothesis of 
+        randomness.
+        
+    Parameters:
+        initial_indices(float): the initial indices of the clustering under consideration
+        list_of_indices(list): the list of calculated indices of all the monte carlo sample distributions
+        
+    Returns:
+        result(list): a list of strings containing the results of the function's computations
+        
+    '''
+    no_of_indices = len(list_of_indices)
+    result_list = [0] * no_of_indices #one result for each index
+    for i in range(no_of_indices):
+        z_statistic = (initial_indices[i] - np.mean(list_of_indices[i, :]))/np.std(list_of_indices[i, :])
+        # Two tailed test
+        if z_statistic <= 0:
+            p_value1 = norm.cdf(z_statistic)
+            p_value2 = 1 - norm.cdf(-z_statistic)
+        else:
+            p_value1 = 1 - norm.cdf(z_statistic)
+            p_value2 = norm.cdf(-z_statistic)
+        
+        if p_value1 + p_value2 < 0.05:
+            result_list[i] = 'Null hypothesis rejected for significance level 0.05, with p_value = {:f}'.format(p_value1 + p_value2)
+        else:
+            result_list[i] = 'Null hypothesis accepted for significance level 0.05, with p_value = {:f}'.format(p_value1 + p_value2)
+    
+    return result_list
+
+
 def external_validity(data, no_of_clusters, external_data_info):
+    ''' A function that wraps the rest of the functions of this module and calls them in the 
+        appropriate order. It could be defined as the only public function of the module. 
+        
+    Parameters:
+        data((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters(integer): the number of clusters
+        external_data_info(list): the external clustering results
+    
+    Returns:
+        initial_indices(float): the initial indices of the clustering under consideration
+        list_of_indices(list): the list of calculated indices of all the monte carlo sample distributions
+        result_list(list): a list of strings containing the results of the function's computations
+        
+    '''
     initial_indices = external_indices(data, external_data_info)
     list_of_indices = monte_carlo(data, no_of_clusters, external_data_info)
+    result_list = significance_calc(initial_indices, list_of_indices)
     
-    return initial_indices, list_of_indices
+    return initial_indices, list_of_indices, result_list
 
     
     

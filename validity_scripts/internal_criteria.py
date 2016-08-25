@@ -79,9 +79,10 @@ def monte_carlo(data, no_of_clusters):
     return list_of_gammas
     
 
-def significance_calc(initial_gamma, list_of_gammas, N):
-    ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
-        calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
+def significance_calc(initial_gamma, list_of_gammas):
+    ''' Calculates z-statistic for initial_gamma with regards to the normal distribution of list_of_gammas
+        the p_value of the z-statistic and based on the results accepts or rejects the null hypothesis of 
+        randomness.
         
     Parameters:
         initial_gamma(float): the Gamma statistic of the clustering under consideration
@@ -123,7 +124,7 @@ def internal_validity(data, no_of_clusters):
     '''
     initial_gamma = gamma(data)
     list_of_gammas = monte_carlo(data, no_of_clusters)
-    result = significance_calc(initial_gamma, list_of_gammas, len(data))
+    result = significance_calc(initial_gamma, list_of_gammas)
     
     return initial_gamma, list_of_gammas, result
     
