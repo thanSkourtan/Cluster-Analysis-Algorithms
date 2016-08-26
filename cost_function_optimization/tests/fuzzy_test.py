@@ -2,7 +2,7 @@ from sklearn.datasets import *
 import numpy as np
 import matplotlib.pyplot as plt
 from cost_function_optimization import fuzzy_clustering
-from validity_scripts import internal_criteria, external_criteria
+from validity_scripts import internal_criteria, external_criteria, relative_criteria
 from scipy.stats import norm
 from tqdm import tqdm
 from sys import maxsize as max_integer
@@ -89,80 +89,84 @@ class Test(unittest.TestCase):
     
     #@unittest.skip('no')
     def testRelativeBlobs(self):
-        
-        no_of_clusters= 3
+        no_of_clusters= 5
         
         # Create the dataset
-        X, y = make_blobs(n_samples=10, centers= no_of_clusters, n_features=2,random_state=11)
+        X, y = make_blobs(n_samples=200, centers= no_of_clusters, n_features=2,random_state=None)
         
-        no_of_clusters_list = [i for i in range(2, 11)]
-        values_of_q = [1.25, 2, 3, 4, 5]
-        PC = np.zeros((len(no_of_clusters_list), len(values_of_q)))
-        PE = np.zeros((len(no_of_clusters_list), len(values_of_q)))
-         
-        for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
-            for j, q_value in enumerate(values_of_q): #edw vazw to q
-                # When X returns it has one more column that needs to be erased
-                X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, total_clusters, q = q_value)
-                
-                # Plotting
-                #plot_data_util(X_, centroids, centroids_history, total_clusters)
-                #plt.show()
-                
-                # Calculate index
-                PC[i, j] = np.round(1/len(X) * np.sum(np.power(partition_matrix, 2)), 5)
-                PE[i, j] = - 1/len(X) * np.sum(partition_matrix * np.log(partition_matrix))
-                
-                #################################
-                #Xie Beni from here
-                total_variation = 0.
-                for k, centroid in enumerate(centroids):
-                    temp = X - centroid
-                    distances = np.sum(np.power(temp, 2), axis = 1).reshape(len(X), 1)
-                    # alternative way
-                    # distances = np.diagonal(np.dot(temp, temp.T)).reshape(len(X), 1)
-                    cluster_variation = np.sum(np.power(partition_matrix[:, [k]], 2) * distances) # 2 here is the q value
-                    total_variation += cluster_variation
-                
-                min_distance = max_integer
-                for k, centroid1 in enumerate(centroids):
-                    for l, centroid2 in enumerate(centroids):
-                        if k != l:
-                            temp = centroid1 - centroid2
-                            distance = np.sum(np.power(temp, 2)) # it will always be 1 x 1, euclidean distance without the root
-                            if min_distance > distance:
-                                min_distance = distance 
-                
-                Xie_Beni = total_variation/(min_distance * len(X))
-                print('lala')
-                ####################################
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity(X)
+    
+        plot_relative_indices(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
         
-        for j in range(len(values_of_q)):
-            plt.plot(no_of_clusters_list, PC[:, j], '--')
-            plt.show()
+        plt.show()        
+                
+                
+                
+                
+                
         
-        for j in range(len(values_of_q)):
-            plt.plot(no_of_clusters_list, PE[:, j])
-            plt.show()
         
+def plot_relative_indices(no_of_clusters_list, values_of_q, PC, PE, XB, FS):
+    
+    # row and column sharing
+    figure, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize = (12,9))
     
     
+    # Plot PC
+    for j, q_value in enumerate(values_of_q):
+        ax1.plot(no_of_clusters_list, PC[:, j], label =  q_value)
+        
+    # Plot PE
+    for j, q_value in enumerate(values_of_q):
+        ax2.plot(no_of_clusters_list, PE[:, j], label = q_value)
+        
+    # Plot XB
+    for j, q_value in enumerate(values_of_q):
+        ax3.plot(no_of_clusters_list, XB[:, j], label = q_value)
+        
+    # Plot FS
+    for j, q_value in enumerate(values_of_q):
+        ax4.plot(no_of_clusters_list, FS[:, j], label = q_value)
+        
+    #plt.tight_layout()
+    ax1.set_title('Partition Coefficient')
+    ax2.set_title('Partition Entropy Coefficient')
+    ax3.set_title('Xien Ben index')
+    ax4.set_title('Fukuyama Sugeno index')
+    figure.canvas.set_window_title('Relative Indices')
+    
+    ax1.set_xlabel('Number of clusters')
+    ax1.set_ylabel('Index value')
     
     
-    
+    leg1 = ax1.legend(title = 'q values',framealpha= 0.7)
+    leg2 = ax2.legend(title = 'q values',framealpha= 0.7)
+    leg3 = ax3.legend(title = 'q values',framealpha= 0.7)
+    leg4 = ax4.legend(title = 'q values',framealpha= 0.7)
     
     
 def plot_data_util(X, centroids, centroids_history ,no_of_clusters):
+    
+    # Initialization
     np.random.seed(seed = None)
     clusters = np.unique(X[:, 2])
     
-    # Plot Initial Data
+    # Initialize plots
     f, initDataPlot = plt.subplots(2, sharex=True,  figsize = (12,8))
     f.canvas.set_window_title('Unclustered and Clustered Data')
-    initDataPlot[0].scatter(X[:, 0], X[:, 1])
+    plt.tight_layout()
+
     initDataPlot[0].set_title('Initial Data')
     initDataPlot[0].set_xlabel('Feature 1')
     initDataPlot[0].set_ylabel('Feature 2')
+    
+    initDataPlot[1].set_title('Clustered Data')
+    initDataPlot[1].set_xlabel('Feature 1')
+    initDataPlot[1].set_ylabel('Feature 2')
+    
+    
+    # Plot initial data set without clustering
+    initDataPlot[0].scatter(X[:, 0], X[:, 1])
     
     # Plot data after clustering
     for i, cluster in enumerate(clusters):
@@ -178,10 +182,7 @@ def plot_data_util(X, centroids, centroids_history ,no_of_clusters):
     for i, c in enumerate(centroids):
             initDataPlot[1].plot(centroids[i, 0], centroids[i, 1], c = 'r', marker = 'x', mew=2, ms = 10)
     
-    initDataPlot[1].set_title('Clustered Data')
-    initDataPlot[1].set_xlabel('Feature 1')
-    initDataPlot[1].set_ylabel('Feature 2')
-    plt.tight_layout()
+    
    
 
 def hist_gamma_internal_criteria(initial_gamma, list_of_gammas, result):
@@ -205,7 +206,7 @@ def hist_gamma_internal_criteria(initial_gamma, list_of_gammas, result):
 
 def hist_gamma_external_criteria(initial_indices, list_of_indices, result_list):
 
-    # row and column sharing
+    
     f,  ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize = (12,8))
     f.canvas.set_window_title('External Criteria')
     figure_subplots = (ax1, ax2, ax3, ax4)
