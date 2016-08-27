@@ -15,12 +15,12 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 6
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 100, centers= no_of_clusters, n_features=2,random_state=11)
+        X, y = make_blobs(n_samples = 300, centers= no_of_clusters, n_features=2,random_state=11)
         
         # Run the clustering algorithm
         X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, no_of_clusters)
@@ -87,7 +87,7 @@ class Test(unittest.TestCase):
     
     ################################################## Relative Criteria Clustering #########################
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testRelativeBlobs(self):
         no_of_clusters= 5
         
@@ -98,6 +98,7 @@ class Test(unittest.TestCase):
     
         plot_relative_indices(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
         
+        print(XB)
         plt.show()        
                 
                 
@@ -154,7 +155,7 @@ def plot_data_util(X, centroids, centroids_history ,no_of_clusters):
     # Initialize plots
     f, initDataPlot = plt.subplots(2, sharex=True,  figsize = (12,8))
     f.canvas.set_window_title('Unclustered and Clustered Data')
-    plt.tight_layout()
+    #plt.tight_layout()
 
     initDataPlot[0].set_title('Initial Data')
     initDataPlot[0].set_xlabel('Feature 1')

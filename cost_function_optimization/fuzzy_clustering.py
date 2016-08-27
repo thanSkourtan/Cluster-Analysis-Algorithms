@@ -2,7 +2,7 @@ import numpy as np
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
-def fuzzy(data, no_of_clusters, q = 1.25):
+def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     ''' An implementation of the fuzzy clustering algorithm.
     
     Parameters:
@@ -16,13 +16,19 @@ def fuzzy(data, no_of_clusters, q = 1.25):
         ita(float): a parameter used in possibilistic clustering.
         centroids_history((l x 2) 2-d numpy array): an array to keep the previous positions of the centroids for 
                                                     better visualisation of the result. 
+        partition_matrix ((n x 2) 2-d numpy array): the matrix containing the weights which depict the grade of
+                                                    membership of a vector i to the cluster j 
     
     '''
     # Initializations
     N = len(data)
     partition_matrix = np.zeros((N, no_of_clusters))
     no_of_features = len(data[0])
-    centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, no_of_features), replace = False)
+    # if the centroid are provided as parameter use them, otherwise create them
+    if centroids_initial == None:
+        centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, no_of_features), replace = False)
+    else:
+        centroids_old = centroids_initial
     centroids_new = np.zeros(centroids_old.shape) 
     centroids_history = np.copy(centroids_old) # this array stacks the old positions of the centroids
     

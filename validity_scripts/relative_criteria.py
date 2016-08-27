@@ -5,6 +5,9 @@ from sys import maxsize as max_integer
 import matplotlib.pyplot as plt
 
 
+euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
+
+
 def relative_validity(X):
     
     # Initialization
@@ -19,23 +22,23 @@ def relative_validity(X):
     FS = np.zeros((len(no_of_clusters_list), len(values_of_q)))
     
     for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
+        # IMPORTANT: The centroids must remain the same for every run of the algorithm with the same no_of_clusters
+        centroids_initial = np.random.choice(np.arange(np.min(X), np.max(X), 0.1), size = (total_clusters, len(X[0])), replace = False)
+        
         for j, q_value in enumerate(values_of_q): #edw vazw to q
+            
+        
+            
             # When X returns it has one more column that needs to be erased
-            X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, total_clusters, q = q_value)
+            X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, total_clusters, centroids_initial, q = q_value)
             
             
             
             # Calculate index
             PC[i, j] = partition_coefficient(X, partition_matrix)
-            #print(PC[i,j])
-            #print(np.sum(np.power(partition_matrix, 2), axis = 1))
-            
             PE[i, j] = partition_entropy(X, partition_matrix)
             XB[i, j] = Xie_Beni(X, centroids, partition_matrix, centroids_history)
-            
-            #print(XB)
-            #print('centroid history', centroids_history)
-            #print('centroids: ', centroids)
+        
             #plot_data_util(X_, centroids, centroids_history ,total_clusters)
             #plt.show()
             
@@ -65,16 +68,13 @@ def Xie_Beni(X, centroids, partition_matrix, centroids_history):
     min_distance = max_integer
     for k, centroid1 in enumerate(centroids):
         for l, centroid2 in enumerate(centroids):
-            if k != l:
+            if k < l:
                 temp = centroid1 - centroid2
                 distance = np.sum(np.power(temp, 2)) # it will always be 1 x 1, euclidean distance without the root
                 if min_distance > distance:
                     min_distance = distance 
                 
     Xie_Beni = total_variation/(min_distance * len(X))
-    if min_distance == 0: 
-        print('centroids :', centroids)
-        print('centroid history: ', centroids_history)
     
     return Xie_Beni
 
