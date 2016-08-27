@@ -22,9 +22,9 @@ def fuzzy(data, no_of_clusters, q = 1.25):
     N = len(data)
     partition_matrix = np.zeros((N, no_of_clusters))
     no_of_features = len(data[0])
-    centroids_old = np.random.choice(np.arange(np.min(data), np.max(data)), size = (no_of_clusters, no_of_features))
+    centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, no_of_features), replace = False)
     centroids_new = np.zeros(centroids_old.shape) 
-    centroids_history = np.copy(centroids_old)
+    centroids_history = np.copy(centroids_old) # this array stacks the old positions of the centroids
     
     # A do - while loop implementation in Python, as the loop needs to run at least once
     condition = True

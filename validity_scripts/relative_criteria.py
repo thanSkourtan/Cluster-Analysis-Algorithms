@@ -29,10 +29,16 @@ def relative_validity(X):
             PC[i, j] = partition_coefficient(X, partition_matrix)
             #print(PC[i,j])
             #print(np.sum(np.power(partition_matrix, 2), axis = 1))
+            
+            PE[i, j] = partition_entropy(X, partition_matrix)
+            XB[i, j] = Xie_Beni(X, centroids, partition_matrix, centroids_history)
+            
+            #print(XB)
+            #print('centroid history', centroids_history)
+            #print('centroids: ', centroids)
             #plot_data_util(X_, centroids, centroids_history ,total_clusters)
             #plt.show()
-            PE[i, j] = partition_entropy(X, partition_matrix)
-            XB[i, j] = Xie_Beni(X, centroids, partition_matrix)
+            
             FS[i, j] = fukuyama_sugeno(X, centroids, partition_matrix, q = 2)
         
     return no_of_clusters_list, values_of_q, PC, PE, XB, FS
@@ -45,7 +51,7 @@ partition_coefficient = lambda X, partition_matrix: np.round(1/len(X) * np.sum(n
 partition_entropy = lambda X, partition_matrix: - 1/len(X) * np.sum(partition_matrix * np.log(partition_matrix)) 
 
 
-def Xie_Beni(X, centroids, partition_matrix):
+def Xie_Beni(X, centroids, partition_matrix, centroids_history):
     
     total_variation = 0.
     for k, centroid in enumerate(centroids):
@@ -66,6 +72,10 @@ def Xie_Beni(X, centroids, partition_matrix):
                     min_distance = distance 
                 
     Xie_Beni = total_variation/(min_distance * len(X))
+    if min_distance == 0: 
+        print('centroids :', centroids)
+        print('centroid history: ', centroids_history)
+    
     return Xie_Beni
 
 

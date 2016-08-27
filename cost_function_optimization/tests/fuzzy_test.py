@@ -92,7 +92,7 @@ class Test(unittest.TestCase):
         no_of_clusters= 5
         
         # Create the dataset
-        X, y = make_blobs(n_samples=200, centers= no_of_clusters, n_features=2,random_state=None)
+        X, y = make_blobs(n_samples=100, centers= no_of_clusters, n_features=2,random_state=20)
         
         no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity(X)
     
