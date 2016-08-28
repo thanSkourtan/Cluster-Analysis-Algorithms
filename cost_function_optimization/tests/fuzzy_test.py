@@ -17,10 +17,10 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("no")
     def testBlobs(self):
-        no_of_clusters = 6
+        no_of_clusters = 3
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 300, centers= no_of_clusters, n_features=2,random_state=11)
+        X, y = make_blobs(n_samples = 100, centers= no_of_clusters, n_features=2,random_state=11)
         
         # Run the clustering algorithm
         X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, no_of_clusters)
@@ -189,7 +189,7 @@ def plot_data_util(X, centroids, centroids_history ,no_of_clusters):
 def hist_gamma_internal_criteria(initial_gamma, list_of_gammas, result):
     f, ax = plt.subplots(figsize = (12,8))
     f.canvas.set_window_title('Internal Criteria')
-    n, bins, patches = plt.hist(list_of_gammas, bins = 30, color = 'g')
+    n, bins, patches = plt.hist(list_of_gammas, bins = 50, color = 'g')
     ax.hist(initial_gamma, bins = 50, color = 'r')
     
     #bincenters = 0.5*(bins[1:]+bins[:-1])

@@ -28,10 +28,10 @@ def gamma(data):
         P = np.concatenate((P, euclidean_distance(data,point)), axis=1)
     
     # Construct the matrix Y
-    Y = np.ones((N, N))
+    Y = np.zeros((N, N))
     for i, _ in enumerate(data):
         same_cluster_indices = np.where(data[:, m - 1] == data[i, m - 1])
-        Y[i, same_cluster_indices[0]] = 0
+        Y[i, same_cluster_indices[0]] = 1
     
     # Calculate the Hubert's Gamma Statistic    
     M = N * (N - 1) / 2
