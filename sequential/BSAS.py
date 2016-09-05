@@ -9,7 +9,7 @@ def basic_sequential_scheme(data, max_number_of_clusters = 10):
     N = len(data)
     m = len(data[0])
     # Automatically calculating threshold by peaks and valleys technique
-    threshold = thresholding(data)
+    threshold = thresholding_BSAS(data)
     # threshold = 5
     
     # We keep two copies of the data matrix, one with the clusters
@@ -62,7 +62,7 @@ def basic_sequential_scheme(data, max_number_of_clusters = 10):
 
 
 
-def thresholding(data):
+def thresholding_BSAS(data):
     ''' A function to calculate the value of the threshold
     '''
     #construct the dissimilarity matrix
@@ -85,17 +85,12 @@ def thresholding(data):
     
     all_peaks_indices = argrelextrema(n, np.greater)[0]
     all_peaks_values = n[all_peaks_indices]
-    
     sorted_list_of_peaks_indices = [index for value, index in sorted(zip(all_peaks_values, all_peaks_indices))]
-    
     two_largest_peaks = sorted_list_of_peaks_indices[-2:]
-    
     temp = sorted(two_largest_peaks)
-    
     deepest_valley_bin = np.argmin(n[temp[0]:temp[1]]) + temp[0]
-    
-    deepest_valley = np.round(bins[deepest_valley_bin], 0)
-    print(deepest_valley)
+    deepest_valley = bins[deepest_valley_bin]
+  
     return deepest_valley
     
     

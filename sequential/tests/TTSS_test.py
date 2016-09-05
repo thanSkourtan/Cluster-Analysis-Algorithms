@@ -1,7 +1,7 @@
 from sklearn.datasets import *
 import numpy as np
 import matplotlib.pyplot as plt
-from sequential import BSAS
+from sequential import TTSS
 from validity_scripts import internal_criteria, external_criteria, relative_criteria
 from scipy.stats import norm
 from tqdm import tqdm
@@ -20,9 +20,11 @@ class Test(unittest.TestCase):
         
         # Create the dataset
         X, y = make_blobs(n_samples = 1000, centers= no_of_clusters, n_features=2,random_state=48)
+        
         X = np.array([[2,5],[6,4],[5,3],[2,2],[1,4], [5,2], [3,3], [2,3]])
+        
         # Run the clustering algorithm
-        X, centroids, no_of_clusters = BSAS.basic_sequential_scheme(X)
+        X, centroids, no_of_clusters = TTSS.two_threshold_sequential_scheme(X)
         print(X)
 
         # Plotting
