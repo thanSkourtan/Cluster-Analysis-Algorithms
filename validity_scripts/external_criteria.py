@@ -3,6 +3,7 @@ from cost_function_optimization import *
 import numpy as np
 from tqdm import tqdm
 
+
 def external_indices(data, external_data_info):
     '''Calculates three indices (rand statistic, jaccard coefficient, Fowlkes and Mallows) based on a matrix P
        that shows the simmilarity between the clustering under consideration and an external clustering. Also
@@ -78,7 +79,7 @@ def external_indices(data, external_data_info):
     
     return rand_statistic, jaccard_coefficient, fowlkes_and_mallows, gamma
 
-def monte_carlo(data, no_of_clusters, external_data_info):
+def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
     ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
         calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
         
@@ -108,8 +109,14 @@ def monte_carlo(data, no_of_clusters, external_data_info):
             temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
             random_data = np.concatenate((random_data, temp), axis = 1)
             
-        X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(random_data, no_of_clusters)
-        
+        if algorithm == fuzzy_clustering.fuzzy:
+            X, centroids, ita, centroids_history, partition_matrix = algorithm(random_data, no_of_clusters)
+        elif algorithm == possibilistic_clustering.possibilistic:
+            X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(random_data, no_of_clusters)
+            X, centroids, centroids_history, typicality_matrix = algorithm(random_data, no_of_clusters, ita, centroids_initial = centroids)
+        elif algorithm == kmeans_clustering.kmeans:
+            X, centroids, centroids_history = algorithm(random_data, no_of_clusters)
+
         temp = np.array(external_indices(X, external_data_info)).reshape(4, 1)
         list_of_indices= np.concatenate((list_of_indices, temp), axis = 1)
     
@@ -149,7 +156,7 @@ def significance_calc(initial_indices, list_of_indices):
     return result_list
 
 
-def external_validity(data, no_of_clusters, external_data_info):
+def external_validity(data, no_of_clusters, external_data_info, algorithm):
     ''' A function that wraps the rest of the functions of this module and calls them in the 
         appropriate order. It could be defined as the only public function of the module. 
         
@@ -165,7 +172,7 @@ def external_validity(data, no_of_clusters, external_data_info):
         
     '''
     initial_indices = external_indices(data, external_data_info)
-    list_of_indices = monte_carlo(data, no_of_clusters, external_data_info)
+    list_of_indices = monte_carlo(data, no_of_clusters, external_data_info, algorithm)
     result_list = significance_calc(initial_indices, list_of_indices)
     
     return initial_indices, list_of_indices, result_list

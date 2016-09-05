@@ -8,6 +8,7 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     Parameters:
         data((m x n) 2-d numpy array): a data set of m instances and n features
         no_of_clusters(integer): the number of clusters
+        centroids_initial(): the optional initial values for the centroids
         q(integer): fuzzifier parameter
     
     Returns:
@@ -49,7 +50,7 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
         
         # Update the termination criterion where e = 0.00001
         criterion_array = np.absolute(centroids_new - centroids_old) < 0.00001
-        if np.any(criterion_array) :
+        if np.all(criterion_array) :
             condition = False
         
         centroids_old = np.copy(centroids_new)
@@ -57,8 +58,8 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     
     # Ita calculation - applied when we use possibilistic clustering
     ita = []
-    for centroid in centroids_new:
-        ita.append(np.sum(np.power(partition_matrix[:, [0]],q) * euclidean_distance(data, centroid)) / np.sum(np.power(partition_matrix[:, 0], 2)))
+    for i, centroid in enumerate(centroids_new):
+        ita.append(np.sum(np.power(partition_matrix[:, [i]],q) * euclidean_distance(data, centroid)) / np.sum(np.power(partition_matrix[:, i], q)))
     
     # Assign each vector to a cluster taking the greatest u
     assigned_cluster = np.argmax(partition_matrix, axis = 1) 

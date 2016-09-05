@@ -1,18 +1,50 @@
 import numpy as np
 from tqdm import tqdm
-from cost_function_optimization import fuzzy_clustering
+from cost_function_optimization import fuzzy_clustering, possibilistic_clustering, kmeans_clustering
 from sys import maxsize as max_integer
 import matplotlib.pyplot as plt
-
+from utility.plotting_functions import *
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 
-def relative_validity(X):
-    
+def relative_validity_hard(X, no_of_clusters):
     # Initialization
     no_of_clusters_list = [i for i in range(2, 11)]
-    values_of_q = [1.3, 1.5, 2, 2.5, 3, 3.5, 5]
+    
+    DI = np.zeros(len(no_of_clusters_list))
+    DB = np.zeros(len(no_of_clusters_list))
+    
+    for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters)
+        
+        DI[i] = Dunn_index(X_)
+        DB[i] = Davies_Bouldin(X_, centroids)
+        
+        # Print just one clustering effort, the correct one in order to compare it with the indices' signals
+        if total_clusters == no_of_clusters:
+            plot_data(X_, centroids, total_clusters, centroids_history)
+            
+    
+    return no_of_clusters_list, DI
+
+
+def relative_validity_fuzzy(X, no_of_clusters):
+    ''' Constructs the framework into which successive executions of the 
+        algorithm take place
+        
+        Parameters:
+        X((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters: the number of clusters
+        
+        Returns:
+        no_of_clusters_list: the different number of clusters tried
+        values_of_q: the different values of q that were tried.
+        PC, PE, XB, FS : the arrays holding the values of the four indices
+    '''
+    # Initialization
+    no_of_clusters_list = [i for i in range(2, 11)]
+    values_of_q = [1.25, 1.5, 2, 2.5, 3, 3.5, 5]
     
     # Initialize arrays to hold the indices. We use separate arrays for easier modification of the code if needed.
     # If we wanted to use one array then this would be a 3 - dimensional array.
@@ -27,35 +59,106 @@ def relative_validity(X):
         
         for j, q_value in enumerate(values_of_q): #edw vazw to q
             
-        
-            
             # When X returns it has one more column that needs to be erased
             X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, total_clusters, centroids_initial, q = q_value)
-            
-            
-            
-            # Calculate index
+                
+            # Calculate indices
             PC[i, j] = partition_coefficient(X, partition_matrix)
             PE[i, j] = partition_entropy(X, partition_matrix)
-            XB[i, j] = Xie_Beni(X, centroids, partition_matrix, centroids_history)
-        
-            #plot_data_util(X_, centroids, centroids_history ,total_clusters)
-            #plt.show()
-            
+            XB[i, j] = Xie_Beni(X, centroids, partition_matrix)
             FS[i, j] = fukuyama_sugeno(X, centroids, partition_matrix, q = 2)
-        
+             
+            # Print just one clustering effort, the correct one in order to compare it with the indices' signals
+            if q_value == 1.25 and total_clusters == no_of_clusters:
+                plot_data(X_, centroids, total_clusters, centroids_history)
+                
+            
     return no_of_clusters_list, values_of_q, PC, PE, XB, FS
+    
         
     
 
 
-
+# Lambda functions in order to calculate the same name indices
 partition_coefficient = lambda X, partition_matrix: np.round(1/len(X) * np.sum(np.power(partition_matrix, 2)), 5)
 partition_entropy = lambda X, partition_matrix: - 1/len(X) * np.sum(partition_matrix * np.log(partition_matrix)) 
 
 
-def Xie_Beni(X, centroids, partition_matrix, centroids_history):
+
+def Dunn_index(X):
     
+
+    N = len(X)
+    m = len(X[0])
+    clusters = np.unique(X[:, m - 1])
+    # The two basic structures of the index. The distance_between_clusters is an upper triangular matrix
+    #distance_between_clusters = np.zeros((len(clusters), len(clusters)))
+    #cluster_diameter = np.zeros((len(clusters)))
+    min_cluster_distance = max_integer
+    max_cluster_diameter = -max_integer - 1
+    
+    # Construct the dissimilarity matrix
+    dissimilarity_matrix = np.empty((N, 0)) 
+    for point in X:
+        dissimilarity_matrix = np.concatenate((dissimilarity_matrix, euclidean_distance(X, point)), axis=1)
+    
+    for i, cluster1 in enumerate(clusters):
+        # Calculate the diameter of each cluster
+        first_cluster_indices = np.where(X[:, m - 1] == cluster1)[0]
+        temp = np.max(dissimilarity_matrix[first_cluster_indices.reshape(len(first_cluster_indices), 1), first_cluster_indices])
+        if max_cluster_diameter < temp:
+            max_cluster_diameter = temp
+        
+        for j, cluster2 in enumerate(clusters[(i+1):], start = i + 1):
+            # Calculate the distances between the clusters
+            second_cluster_indices = np.where(X[:, m - 1] == cluster2)[0]
+            # The reshape creates a n x 1 2-d array which is very important for the indexing of the dissimilarity matrix
+            temp = np.min(dissimilarity_matrix[first_cluster_indices.reshape(len(first_cluster_indices), 1), second_cluster_indices])
+            if min_cluster_distance > temp:
+                min_cluster_distance = temp
+    
+    # Dunn index is the minimum distance between clusters divided by the maximum diameter
+    return min_cluster_distance/max_cluster_diameter
+
+
+def Davies_Bouldin(X, centroids):
+    
+    N = len(X)
+    m = len(X[0])
+    clusters = np.unique(X[:, m - 1])
+    cluster_dispersion = np.zeros((len(clusters)))
+    
+    for i, cluster in enumerate(clusters): 
+        temp = np.sum(np.pow(X[np.where(X[:, m - 1] == cluster)[0], : (m - 1)] - centroids, 2))
+        cluster_dispersion[i] = np.sqrt(1/N * temp)
+        
+        
+    for j, cluster1 in enumerate(clusters):
+        for k, cluster2 in enumerate(clusters[(j+1):], start = j + 1):
+            euclidean_distance()
+
+
+
+
+
+
+
+
+
+
+def Xie_Beni(X, centroids, partition_matrix):
+    ''' Calculates the Xie Beni index.
+    
+    Parameters:
+        X((m x n) 2-d numpy array): a data set of m instances and n features
+        centroids: the value of the centroids after running a clustering algorihtm on the data set
+        partition_matrix: the partition matrix
+    
+    Returns:
+        Xie_Beni(float): the value of the Xie Beni index
+        
+    Reference: Pattern Recognition, S. Theodoridis, K. Koutroumbas
+    '''
     total_variation = 0.
     for k, centroid in enumerate(centroids):
         temp = X - centroid
@@ -80,6 +183,8 @@ def Xie_Beni(X, centroids, partition_matrix, centroids_history):
 
 
 def fukuyama_sugeno(X, centroids, partition_matrix, q = 2):
+    ''' Calculates the fukuyama sugeno index
+    '''
     w = np.mean(X, axis = 0)
     total_sum = 0.
     for k, centroid in enumerate(centroids):
@@ -93,47 +198,6 @@ def fukuyama_sugeno(X, centroids, partition_matrix, q = 2):
         total_sum += np.sum(np.power(partition_matrix[:, [k]], q) * temp)
     
     return total_sum
-
-
-
-def plot_data_util(X, centroids, centroids_history ,no_of_clusters):
-    
-    # Initialization
-    np.random.seed(seed = None)
-    clusters = np.unique(X[:, 2])
-    
-    # Initialize plots
-    f, initDataPlot = plt.subplots(2, sharex=True,  figsize = (12,8))
-    f.canvas.set_window_title('Unclustered and Clustered Data')
-    plt.tight_layout()
-
-    initDataPlot[0].set_title('Initial Data')
-    initDataPlot[0].set_xlabel('Feature 1')
-    initDataPlot[0].set_ylabel('Feature 2')
-    
-    initDataPlot[1].set_title('Clustered Data')
-    initDataPlot[1].set_xlabel('Feature 1')
-    initDataPlot[1].set_ylabel('Feature 2')
-    
-    
-    # Plot initial data set without clustering
-    initDataPlot[0].scatter(X[:, 0], X[:, 1])
-    
-    # Plot data after clustering
-    for i, cluster in enumerate(clusters):
-        initDataPlot[1].scatter(X[ X[:,2] == cluster, 0], X[ X[:, 2] == cluster, 1], c=np.random.rand(3,1), s = 30)
-    
-    # Plots the centroids history
-    colors= ['k', 'b', 'g', 'y', 'm', 'c']
-    for alpha_counter, i in enumerate(range(0, len(centroids_history),  no_of_clusters)):
-        for j in range(i, i + no_of_clusters):
-            initDataPlot[1].plot(centroids_history[j, 0], centroids_history[j, 1], c = colors[j % len(colors)], marker = 'x', mew =  1, ms = 15, alpha = 0.2 + alpha_counter * 0.8/(len(centroids_history)/no_of_clusters))
-            
-    # Plots the centroids
-    for i, c in enumerate(centroids):
-            initDataPlot[1].plot(centroids[i, 0], centroids[i, 1], c = 'r', marker = 'x', mew=2, ms = 10)
- 
-
 
 
 

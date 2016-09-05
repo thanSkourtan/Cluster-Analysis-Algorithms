@@ -1,7 +1,8 @@
 from scipy.stats import norm
-from cost_function_optimization import *
+from cost_function_optimization import fuzzy_clustering, possibilistic_clustering, kmeans_clustering
 import numpy as np
 from tqdm import tqdm
+
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
@@ -44,7 +45,7 @@ def gamma(data):
     
 
 
-def monte_carlo(data, no_of_clusters):
+def monte_carlo(data, no_of_clusters, algorithm):
     ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
         calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
         
@@ -71,9 +72,15 @@ def monte_carlo(data, no_of_clusters):
             min_value = np.min(data[:, i])
             temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
             random_data = np.concatenate((random_data, temp), axis = 1)
-            
-        X, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(random_data, no_of_clusters)
         
+        if algorithm == fuzzy_clustering.fuzzy:
+            X, centroids, ita, centroids_history, partition_matrix = algorithm(random_data, no_of_clusters)
+        elif algorithm == possibilistic_clustering.possibilistic:
+            X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(random_data, no_of_clusters)
+            X, centroids, centroids_history, typicality_matrix = algorithm(random_data, no_of_clusters, ita, centroids_initial = centroids)
+        elif algorithm == kmeans_clustering.kmeans:
+            X, centroids, centroids_history = algorithm(random_data, no_of_clusters)
+
         list_of_gammas.append(gamma(X))
     
     return list_of_gammas
@@ -108,7 +115,7 @@ def significance_calc(initial_gamma, list_of_gammas):
     return result
 
 
-def internal_validity(data, no_of_clusters):
+def internal_validity(data, no_of_clusters, algorithm):
     ''' A function that wraps the rest of the functions of this module and calls them in the 
         appropriate order. It could be defined as the only public function of the module. 
         
@@ -123,7 +130,7 @@ def internal_validity(data, no_of_clusters):
         
     '''
     initial_gamma = gamma(data)
-    list_of_gammas = monte_carlo(data, no_of_clusters)
+    list_of_gammas = monte_carlo(data, no_of_clusters, algorithm)
     result = significance_calc(initial_gamma, list_of_gammas)
     
     return initial_gamma, list_of_gammas, result
