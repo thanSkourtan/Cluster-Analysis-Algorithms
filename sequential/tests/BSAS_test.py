@@ -16,25 +16,70 @@ class Test(unittest.TestCase):
 
     #@unittest.skip("no")
     def testBlobs(self):
-        no_of_clusters = 10
+        no_of_clusters = 6
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 1000, centers= no_of_clusters, n_features=2,random_state=48)
-        X = np.array([[2,5],[6,4],[5,3],[2,2],[1,4], [5,2], [3,3], [2,3]])
+        X, y = make_blobs(n_samples = 500, centers= no_of_clusters, n_features=2,random_state=50)
+        
         # Run the clustering algorithm
         X, centroids, no_of_clusters = BSAS.basic_sequential_scheme(X)
-        print(X)
 
         # Plotting
         plot_data(X, centroids, no_of_clusters)
         
         # Examine Cluster Validity with statistical tests
-        #initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, kmeans_clustering.kmeans)
-        #initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y, kmeans_clustering.kmeans)
+        initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, BSAS.basic_sequential_scheme)
+        initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y, BSAS.basic_sequential_scheme)
         
         # Histogram of gammas from internal criteria 
-        #hist_internal_criteria(initial_gamma, list_of_gammas, result)
-        #hist_external_criteria(initial_indices, list_of_indices, result_list)
+        hist_internal_criteria(initial_gamma, list_of_gammas, result)
+        hist_external_criteria(initial_indices, list_of_indices, result_list)
+        
+        plt.show()
+    
+    @unittest.skip("no")
+    def testCircles(self):
+        no_of_clusters = 2
+        
+        # Create the dataset
+        X, y = make_circles(n_samples=300, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
+        
+        # Run the clustering Algorithm
+        X, centroids, no_of_clusters = BSAS.basic_sequential_scheme(X)
+        
+        # Plotting
+        plot_data(X, centroids, no_of_clusters)
+        
+        # Examine Cluster Validity with statistical tests
+        initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters , BSAS.basic_sequential_scheme)
+        initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y, BSAS.basic_sequential_scheme)
+        
+        # Histogram of gammas from internal and external criteria 
+        hist_internal_criteria(initial_gamma, list_of_gammas, result)
+        hist_external_criteria(initial_indices, list_of_indices, result_list)
+        
+        plt.show()
+        
+    @unittest.skip("no")
+    def testMoons(self):
+        no_of_clusters = 2
+        
+        # Create the dataset
+        X, y = make_moons(n_samples=300, shuffle = True, noise = 0.1, random_state = 10)
+        
+        # Run the clustering algorithm
+        X, centroids, no_of_clusters = BSAS.basic_sequential_scheme(X)
+        
+        # Plotting
+        plot_data(X, centroids, no_of_clusters)
+        
+        # Examine Cluster Validity with statistical tests
+        initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, BSAS.basic_sequential_scheme)
+        initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y, BSAS.basic_sequential_scheme)
+        
+        # Histogram of gammas from internal and external criteria 
+        hist_internal_criteria(initial_gamma, list_of_gammas, result)
+        hist_external_criteria(initial_indices, list_of_indices, result_list)
         
         plt.show()
 

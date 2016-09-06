@@ -1,5 +1,6 @@
 from scipy.stats import norm
 from cost_function_optimization import *
+from sequential import *
 import numpy as np
 from tqdm import tqdm
 
@@ -116,6 +117,12 @@ def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
             X, centroids, centroids_history, typicality_matrix = algorithm(random_data, no_of_clusters, ita, centroids_initial = centroids)
         elif algorithm == kmeans_clustering.kmeans:
             X, centroids, centroids_history = algorithm(random_data, no_of_clusters)
+        elif algorithm == BSAS.basic_sequential_scheme:
+            X, centroids, no_of_clusters = algorithm(random_data)
+        elif algorithm == TTSS.two_threshold_sequential_scheme:
+            X, centroids, no_of_clusters = algorithm(random_data)
+
+
 
         temp = np.array(external_indices(X, external_data_info)).reshape(4, 1)
         list_of_indices= np.concatenate((list_of_indices, temp), axis = 1)
