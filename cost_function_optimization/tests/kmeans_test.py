@@ -18,7 +18,7 @@ class Test(unittest.TestCase):
 
     @unittest.skip("no")
     def testBlobs(self):
-        no_of_clusters = 6
+        no_of_clusters = 5
         
         # Create the dataset
         X, y = make_blobs(n_samples = 300, centers= no_of_clusters, n_features=2,random_state=11)
@@ -90,16 +90,16 @@ class Test(unittest.TestCase):
     
     #@unittest.skip('no')
     def testRelativeBlobs(self):
-        no_of_clusters= 6
+        no_of_clusters= 3
         
         # Create the dataset
         X, y = make_blobs(n_samples=1000, centers= no_of_clusters, n_features=2,random_state=20)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, DI = relative_criteria.relative_validity_hard(X, no_of_clusters)
+        no_of_clusters_list, DI, DB, SI = relative_criteria.relative_validity_hard(X, no_of_clusters)
         
         # Plot the indices
-        plot_relative_criteria_hard(no_of_clusters_list, DI)
+        plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI)
         plt.show()       
     
     

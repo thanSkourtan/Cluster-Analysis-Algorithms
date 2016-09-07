@@ -10,6 +10,7 @@ from utility.plotting_functions import *
 
 import unittest
 
+plt.style.use('ggplot')
 
 class Test(unittest.TestCase):
 

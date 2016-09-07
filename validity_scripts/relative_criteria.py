@@ -14,19 +14,21 @@ def relative_validity_hard(X, no_of_clusters):
     
     DI = np.zeros(len(no_of_clusters_list))
     DB = np.zeros(len(no_of_clusters_list))
+    SI = np.zeros(len(no_of_clusters_list))
     
     for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
         X_, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters)
         
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
+        SI[i] = silhouette_index(X_)
         
         # Print just one clustering effort, the correct one in order to compare it with the indices' signals
         if total_clusters == no_of_clusters:
             plot_data(X_, centroids, total_clusters, centroids_history)
             
     
-    return no_of_clusters_list, DI
+    return no_of_clusters_list, DI, DB, SI
 
 
 def relative_validity_fuzzy(X, no_of_clusters):
@@ -98,9 +100,9 @@ def Dunn_index(X):
     max_cluster_diameter = -max_integer - 1
     
     # Construct the dissimilarity matrix
-    dissimilarity_matrix = np.empty((N, 0)) 
-    for point in X:
-        dissimilarity_matrix = np.concatenate((dissimilarity_matrix, euclidean_distance(X, point)), axis=1)
+    dissimilarity_matrix = np.empty((N, N)) 
+    for j, point in enumerate(X):
+        dissimilarity_matrix[:, [j]] = euclidean_distance(X, point)
     
     for i, cluster1 in enumerate(clusters):
         # Calculate the diameter of each cluster
@@ -123,27 +125,101 @@ def Dunn_index(X):
 
 def Davies_Bouldin(X, centroids):
     
+    # If a centroids has not been used, the index is implemented in such a way that it is skipped
+    #pote den xrisimopoioume tous centroids monous tous, panta pairnoume mono ta used clustesr
+    # In Dunn index the distance between clusters is the distance between the closest vectors of the clusters
+    # In Davies Bouldin the same distance is the distance between the centroids.
+    
     N = len(X)
     m = len(X[0])
-    clusters = np.unique(X[:, m - 1])
-    cluster_dispersion = np.zeros((len(clusters)))
     
+    clusters = np.unique(X[:, m - 1])
+    # Casting the clusters array to int as we are going to use it later for indexing
+    clusters = clusters.astype(int)
+    
+    # Create a 1-D matrix to hold the values of each cluster's dispersion
+    cluster_dispersion = np.zeros((len(clusters)))
+    # Create a dissimilarity matrix to hold the distances between the clusters' centroids
+    cluster_distances = np.zeros((len(clusters), len(clusters)))
+    
+    # Calculate dispersion values and clusters' distances in one loop
     for i, cluster in enumerate(clusters): 
-        temp = np.sum(np.pow(X[np.where(X[:, m - 1] == cluster)[0], : (m - 1)] - centroids, 2))
+        temp = np.sum(np.power(X[np.where(X[:, m - 1] == cluster)[0], :(m - 1)] - centroids[cluster], 2))
         cluster_dispersion[i] = np.sqrt(1/N * temp)
+        # Calculate clusters' distances
+        cluster_distances[i, :] = euclidean_distance(centroids[clusters, :], centroids[cluster]).reshape(1, len(clusters))
+    
+    # Create a matrix to hold the similarity indices between clusters
+    R = np.zeros((len(clusters), len(clusters)))
+    for i, cluster1 in enumerate(clusters):
+        for j, cluster2 in enumerate(clusters[(i+1):], start = i + 1):
+            R[i, j] =  (cluster_dispersion[i] + cluster_dispersion[j]) / cluster_distances[i, j] 
+    
+    DB = np.average(np.amax(R, axis = 1))
+    
+    return DB
+
         
+
+def silhouette_index(X):
+    
+    N= len(X)
+    m = len(X[0])
+    clusters = np.unique(X[:, m - 1])
+    
+    # Construct the dissimilarity matrix
+    dissimilarity_matrix = np.empty((N, N)) 
+    for j, point in enumerate(X):
+        dissimilarity_matrix[:, [j]] = euclidean_distance(X, point)
+    
+    # a: average_distance_in_same_cluster. Average distance only for the vectors belonging to the same clusters
+    a = np.zeros((N))
+    
+    # Calculates the silhouettes of all clusters as the average silhouettes of their vectors
+    # Calculates 
+    for i, cluster in enumerate(clusters):
+        cluster_indices = np.where(X[:, m - 1] == cluster)[0]
+        # Number of vectors in the cluster
+        n = len(cluster_indices)
+        cluster_dissimmilarity_matrix = dissimilarity_matrix[cluster_indices.reshape(n, 1), cluster_indices]
+            
+        for j, vector_index in enumerate(cluster_indices):
+            a[vector_index] = np.sum(cluster_dissimmilarity_matrix[j, :], axis = 0)/(n - 1)
         
-    for j, cluster1 in enumerate(clusters):
-        for k, cluster2 in enumerate(clusters[(j+1):], start = j + 1):
-            euclidean_distance()
-
-
-
-
-
-
-
-
+    #  b: average_distance_in_closest_cluster. Average distance for vectors belonging to the closest cluster
+    b = np.zeros((N))
+    b.fill(max_integer)
+    
+    # Calculates
+    for i, cluster1 in enumerate(clusters):
+        cluster_indices1 = np.where(X[:, m - 1] == cluster1)[0]
+        # Number of vectors in the cluster
+        n = len(cluster_indices1)
+        for j, cluster2 in enumerate(clusters):
+            if cluster1 != cluster2:
+                cluster_indices2 = np.where(X[:, m - 1] == cluster2)[0]
+                k = len(cluster_indices2)
+                different_cluster_dissimmilarity_matrix = dissimilarity_matrix[cluster_indices1.reshape(n, 1), cluster_indices2]
+                
+                # Here we divide with k instead of k - 1, because the same vector will never be at the same cluster
+                for j, vector_index in enumerate(cluster_indices1):
+                    if b[vector_index] > np.sum(different_cluster_dissimmilarity_matrix[j, :], axis = 0)/k:
+                        b[vector_index] = np.sum(different_cluster_dissimmilarity_matrix[j, :], axis = 0)/k
+        
+                
+    # Calculates the silhouette width of every vector
+    vector_silhouette_width = (b - a)/np.amax((b,a), axis = 0)
+    
+    # Calculates the silhouette width of every cluster
+    cluster_silhouette_width = np.zeros(len(clusters))
+    for i, cluster1 in enumerate(clusters):
+        cluster_indices = np.where(X[:, m - 1] == cluster1)[0]
+        cluster_silhouette_width[i] = np.average(vector_silhouette_width[cluster_indices])
+    
+    # Calculates the global silhouette index
+    global_silhouette_index = np.average(cluster_silhouette_width)
+    
+    return global_silhouette_index
 
 
 def Xie_Beni(X, centroids, partition_matrix):

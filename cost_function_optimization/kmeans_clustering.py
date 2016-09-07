@@ -34,11 +34,11 @@ def kmeans(data, no_of_clusters, centroids_initial = None):
     condition = True
     
     while condition:
-        distances_from_repr = np.zeros((N, 0)) # new every time, because we need to empty it
+        distances_from_repr = np.zeros((N, len(centroids_old))) # new every time, because we need to empty it
         # Determine the closest representative
         for i, centroid in enumerate(centroids_old):
             eucl_dist = euclidean_distance(data, centroid)
-            distances_from_repr = np.concatenate((distances_from_repr, eucl_dist), axis = 1)
+            distances_from_repr[:, [i]] = eucl_dist
             
         nearest_cluster = np.argmin(distances_from_repr, axis = 1)
         
