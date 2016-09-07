@@ -22,11 +22,23 @@ def kmeans(data, no_of_clusters, centroids_initial = None):
     # Initializations
     N = len(data)
     no_of_features = len(data[0])
-    # if the centroid are provided as parameter use them, otherwise create them
+    
+    
+    # Centroids initialization. Very important for k-means
     if centroids_initial == None:
         centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, no_of_features), replace = False)
     else:
-        centroids_old = centroids_initial
+        if len(centroids_initial) < no_of_clusters:
+            centroids_old = np.zeros((no_of_clusters, no_of_features))
+            # First centroids values
+            centroids_old[:len(centroids_initial),:] = centroids_initial # first centroids are initialized through centroid_initialization values
+            # Last centroids values
+            random_indices = np.random.randint(N,size = no_of_clusters - len(centroids_initial))
+            centroids_old[len(centroids_initial):,:] = data[random_indices, :]
+        elif len(centroids_initial) > no_of_clusters:
+            centroids_old = centroids_initial[:no_of_clusters, :]
+        elif len(centroids_initial) == no_of_clusters:
+            centroids_old = centroids_initial
     centroids_new = np.zeros(centroids_old.shape) 
     centroids_history = np.copy(centroids_old) # in this array we stack the old positions of the centroids
     

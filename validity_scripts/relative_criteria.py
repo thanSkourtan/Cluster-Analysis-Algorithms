@@ -15,20 +15,22 @@ def relative_validity_hard(X, no_of_clusters):
     DI = np.zeros(len(no_of_clusters_list))
     DB = np.zeros(len(no_of_clusters_list))
     SI = np.zeros(len(no_of_clusters_list))
+    GI = np.zeros(len(no_of_clusters_list))
     
     for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
-        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters)
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters)
         
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
         SI[i] = silhouette_index(X_)
+        GI[i] = gap_index(X_, total_clusters)
         
         # Print just one clustering effort, the correct one in order to compare it with the indices' signals
         if total_clusters == no_of_clusters:
             plot_data(X_, centroids, total_clusters, centroids_history)
             
     
-    return no_of_clusters_list, DI, DB, SI
+    return no_of_clusters_list, DI, DB, SI, GI
 
 
 def relative_validity_fuzzy(X, no_of_clusters):
@@ -81,9 +83,6 @@ def relative_validity_fuzzy(X, no_of_clusters):
     
 
 
-# Lambda functions in order to calculate the same name indices
-partition_coefficient = lambda X, partition_matrix: np.round(1/len(X) * np.sum(np.power(partition_matrix, 2)), 5)
-partition_entropy = lambda X, partition_matrix: - 1/len(X) * np.sum(partition_matrix * np.log(partition_matrix)) 
 
 
 
@@ -91,8 +90,8 @@ def Dunn_index(X):
     
 
     N = len(X)
-    m = len(X[0])
-    clusters = np.unique(X[:, m - 1])
+    m = len(X[0]) - 1
+    clusters = np.unique(X[:, m])
     # The two basic structures of the index. The distance_between_clusters is an upper triangular matrix
     #distance_between_clusters = np.zeros((len(clusters), len(clusters)))
     #cluster_diameter = np.zeros((len(clusters)))
@@ -102,18 +101,18 @@ def Dunn_index(X):
     # Construct the dissimilarity matrix
     dissimilarity_matrix = np.empty((N, N)) 
     for j, point in enumerate(X):
-        dissimilarity_matrix[:, [j]] = euclidean_distance(X, point)
+        dissimilarity_matrix[:, [j]] = euclidean_distance(X[:, :m], point[:m])
     
     for i, cluster1 in enumerate(clusters):
         # Calculate the diameter of each cluster
-        first_cluster_indices = np.where(X[:, m - 1] == cluster1)[0]
+        first_cluster_indices = np.where(X[:, m] == cluster1)[0]
         temp = np.max(dissimilarity_matrix[first_cluster_indices.reshape(len(first_cluster_indices), 1), first_cluster_indices])
         if max_cluster_diameter < temp:
             max_cluster_diameter = temp
         
         for j, cluster2 in enumerate(clusters[(i+1):], start = i + 1):
             # Calculate the distances between the clusters
-            second_cluster_indices = np.where(X[:, m - 1] == cluster2)[0]
+            second_cluster_indices = np.where(X[:, m] == cluster2)[0]
             # The reshape creates a n x 1 2-d array which is very important for the indexing of the dissimilarity matrix
             temp = np.min(dissimilarity_matrix[first_cluster_indices.reshape(len(first_cluster_indices), 1), second_cluster_indices])
             if min_cluster_distance > temp:
@@ -164,13 +163,13 @@ def Davies_Bouldin(X, centroids):
 def silhouette_index(X):
     
     N= len(X)
-    m = len(X[0])
-    clusters = np.unique(X[:, m - 1])
+    m = len(X[0]) - 1
+    clusters = np.unique(X[:, m])
     
     # Construct the dissimilarity matrix
     dissimilarity_matrix = np.empty((N, N)) 
     for j, point in enumerate(X):
-        dissimilarity_matrix[:, [j]] = euclidean_distance(X, point)
+        dissimilarity_matrix[:, [j]] = euclidean_distance(X[:, :m], point[:m])
     
     # a: average_distance_in_same_cluster. Average distance only for the vectors belonging to the same clusters
     a = np.zeros((N))
@@ -178,7 +177,7 @@ def silhouette_index(X):
     # Calculates the silhouettes of all clusters as the average silhouettes of their vectors
     # Calculates 
     for i, cluster in enumerate(clusters):
-        cluster_indices = np.where(X[:, m - 1] == cluster)[0]
+        cluster_indices = np.where(X[:, m] == cluster)[0]
         # Number of vectors in the cluster
         n = len(cluster_indices)
         cluster_dissimmilarity_matrix = dissimilarity_matrix[cluster_indices.reshape(n, 1), cluster_indices]
@@ -192,12 +191,12 @@ def silhouette_index(X):
     
     # Calculates
     for i, cluster1 in enumerate(clusters):
-        cluster_indices1 = np.where(X[:, m - 1] == cluster1)[0]
+        cluster_indices1 = np.where(X[:, m] == cluster1)[0]
         # Number of vectors in the cluster
         n = len(cluster_indices1)
         for j, cluster2 in enumerate(clusters):
             if cluster1 != cluster2:
-                cluster_indices2 = np.where(X[:, m - 1] == cluster2)[0]
+                cluster_indices2 = np.where(X[:, m] == cluster2)[0]
                 k = len(cluster_indices2)
                 different_cluster_dissimmilarity_matrix = dissimilarity_matrix[cluster_indices1.reshape(n, 1), cluster_indices2]
                 
@@ -220,6 +219,69 @@ def silhouette_index(X):
     global_silhouette_index = np.average(cluster_silhouette_width)
     
     return global_silhouette_index
+
+
+def _gap_index_calculation(X):
+    
+    N =len(X)
+    m = len(X[0]) - 1
+    # Construct the dissimilarity matrix
+    dissimilarity_matrix = np.empty((N, N)) 
+    for j, point in enumerate(X):
+        dissimilarity_matrix[:, [j]] = euclidean_distance(X[:, :m], point[:m])
+    
+    clusters = np.unique(X[:, m])
+    # Calculate the sum of the distances between all pairs for each cluster
+    D = np.zeros((len(clusters)))
+    
+    
+    W = 0.
+    
+    for i, cluster in enumerate(clusters):
+        cluster_indices = np.where(X[:, m] == cluster)[0]
+        n = len(cluster_indices)
+        cluster_dissimmilarity_matrix = dissimilarity_matrix[cluster_indices.reshape(n, 1), cluster_indices]
+        
+        D[i] = np.sum(cluster_dissimmilarity_matrix)
+        
+        W += 1/(2 * n) * D[i]
+    
+    return np.log(W)
+
+
+def gap_index(X, no_of_clusters):
+    
+    log_W = _gap_index_calculation(X)
+    # Create an array to hold the logW values of the 100 monte carlo simulations
+    log_W_sample = np.zeros((100))
+    
+    N =len(X)
+    m = len(X[0]) - 1
+    # Monte Carlo simulation - create the datasets (random position hypothesis)
+    for i in range(100):
+        random_data = np.empty((N, m))
+        
+        for i  in range(m):
+            max_value = np.amax(X[:, i])
+            min_value = np.min(X[:, i])
+            temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
+            random_data[:, [i]] = temp
+            
+                  
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(random_data, no_of_clusters)
+        log_W_sample[i] = _gap_index_calculation(X_)
+            
+    Gap = np.average(log_W_sample) - log_W
+    
+    return Gap        
+            
+    
+
+# Lambda functions in order to calculate the same name indices
+partition_coefficient = lambda X, partition_matrix: np.round(1/len(X) * np.sum(np.power(partition_matrix, 2)), 5)
+partition_entropy = lambda X, partition_matrix: - 1/len(X) * np.sum(partition_matrix * np.log(partition_matrix)) 
+
+
 
 
 def Xie_Beni(X, centroids, partition_matrix):

@@ -22,17 +22,17 @@ def gamma(data):
     
     '''
     N = len(data)
-    m = len(data[0])
+    m = len(data[0]) - 1
     
     # Construct the proximity matrix P
-    P = np.empty((N, 0)) 
-    for point in data:
-        P = np.concatenate((P, euclidean_distance(data,point)), axis=1)
+    P = np.empty((N, N)) 
+    for i, point in enumerate(data):
+        P[:, [i]] =  euclidean_distance(data[:, :m],point[:m])
     
     # Construct the matrix Y
     Y = np.zeros((N, N))
     for i, _ in enumerate(data):
-        same_cluster_indices = np.where(data[:, m - 1] == data[i, m - 1])
+        same_cluster_indices = np.where(data[:, m] == data[i, m])
         Y[i, same_cluster_indices[0]] = 1
     
     # Calculate the Hubert's Gamma Statistic    
@@ -59,20 +59,20 @@ def monte_carlo(data, no_of_clusters, algorithm):
         
     '''
     N = len(data)
-    m = len(data[0])
+    m = len(data[0]) - 1
     
     # Monte Carlo simulation - create the datasets (random position hypothesis)
     list_of_gammas = []
     pbar = tqdm(range(100))
     pbar.set_description('Monte carlo sim. - internal indices')
     for _ in pbar:
-        random_data = np.empty((N, 0))
+        random_data = np.empty((N, m))
         
-        for i  in range(m - 1):
+        for i  in range(m):
             max_value = np.amax(data[:, i])
             min_value = np.min(data[:, i])
             temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
-            random_data = np.concatenate((random_data, temp), axis = 1)
+            random_data[:, [i]] = temp
         
         if algorithm == fuzzy_clustering.fuzzy:
             X, centroids, ita, centroids_history, partition_matrix = algorithm(random_data, no_of_clusters)

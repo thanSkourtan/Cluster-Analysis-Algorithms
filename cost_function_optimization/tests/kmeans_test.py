@@ -2,6 +2,7 @@ from sklearn.datasets import *
 import numpy as np
 import matplotlib.pyplot as plt
 from cost_function_optimization import kmeans_clustering
+from sequential import BSAS
 from validity_scripts import internal_criteria, external_criteria, relative_criteria
 from scipy.stats import norm
 from tqdm import tqdm
@@ -16,15 +17,16 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testBlobs(self):
-        no_of_clusters = 5
+        no_of_clusters = 8
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 300, centers= no_of_clusters, n_features=2,random_state=11)
+        X, y = make_blobs(n_samples = 1000, centers= no_of_clusters, n_features=2,random_state=11)
         
-        # Run the clustering algorithm
-        X, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters)
+        # Run the clustering algorithm but first run a sequential algorithm to obtain initial centroids
+        clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(X)
+        X, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters, centroids_initial = centroids)
 
         # Plotting
         plot_data(X, centroids, no_of_clusters, centroids_history)
@@ -88,18 +90,18 @@ class Test(unittest.TestCase):
     
     ################################################## Relative Criteria Clustering #########################
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testRelativeBlobs(self):
-        no_of_clusters= 3
+        no_of_clusters= 6
         
         # Create the dataset
-        X, y = make_blobs(n_samples=1000, centers= no_of_clusters, n_features=2,random_state=20)
+        X, y = make_blobs(n_samples=100, centers= no_of_clusters, n_features=2,random_state=20)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, DI, DB, SI = relative_criteria.relative_validity_hard(X, no_of_clusters)
+        no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X, no_of_clusters)
         
         # Plot the indices
-        plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI)
+        plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI)
         plt.show()       
     
     

@@ -128,7 +128,7 @@ def plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, F
         subplot.set_ylabel('Index value')
         subplot.legend(title = 'q values',framealpha= 0.7)
 
-def plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI):
+def plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI):
     # row and column sharing
     figure, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize = (12,9))
     
@@ -143,17 +143,15 @@ def plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI):
     # Plot SI
     ax3.plot(no_of_clusters_list, SI)
     
-    '''    
-    # Plot FS
-    for j, q_value in enumerate(values_of_q):
-        ax4.plot(no_of_clusters_list, FS[:, j], label = q_value)
-    '''
+    # Plot GI
+    ax4.plot(no_of_clusters_list, GI)
+    
     #plt.tight_layout()
     
     ax1.set_title('Dunn Index')
     ax2.set_title('Davies - Bouldin')
     ax3.set_title('Silhouette Index')
-    ax4.set_title('Fukuyama Sugeno index')
+    ax4.set_title('Gap Index')
     figure.canvas.set_window_title('Relative Indices')
     
     for subplot in subplots_list:
