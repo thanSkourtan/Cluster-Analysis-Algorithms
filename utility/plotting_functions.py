@@ -31,7 +31,7 @@ def plot_data(X, centroids, no_of_clusters, centroids_history = None ):
         initDataPlot[1].scatter(X[ X[:,2] == cluster, 0], X[ X[:, 2] == cluster, 1], c=np.random.rand(3,1), s = 30)
     
     # Plots the centroids history
-    if centroids_history != None:
+    if centroids_history is not None:
         colors= ['k', 'b', 'g', 'y', 'm', 'c']
         for alpha_counter, i in enumerate(range(0, len(centroids_history),  no_of_clusters)):
             for j in range(i, i + no_of_clusters):

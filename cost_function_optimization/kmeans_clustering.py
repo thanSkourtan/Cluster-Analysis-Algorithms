@@ -25,7 +25,7 @@ def kmeans(data, no_of_clusters, centroids_initial = None):
     
     
     # Centroids initialization. Very important for k-means
-    if centroids_initial == None:
+    if centroids_initial is None:
         centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, no_of_features), replace = False)
     else:
         if len(centroids_initial) < no_of_clusters:

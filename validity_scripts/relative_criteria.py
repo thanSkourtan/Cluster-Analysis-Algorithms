@@ -4,6 +4,7 @@ from cost_function_optimization import fuzzy_clustering, possibilistic_clusterin
 from sys import maxsize as max_integer
 import matplotlib.pyplot as plt
 from utility.plotting_functions import *
+from sequential import BSAS
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
@@ -17,8 +18,25 @@ def relative_validity_hard(X, no_of_clusters):
     SI = np.zeros(len(no_of_clusters_list))
     GI = np.zeros(len(no_of_clusters_list))
     
+    # Centroids must remain the same. The only parameter that should change is the number of clusters 
+    clustered_data, centroids_BSAS, total_clusters_ = BSAS.basic_sequential_scheme(X)    
+
+    
     for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
-        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters)
+        
+        if len(centroids_BSAS) < total_clusters:
+            centroids = np.zeros((total_clusters, len(X[0])))
+            # First centroids values
+            centroids[:len(centroids_BSAS),:] = centroids_BSAS 
+            # Last centroids values
+            random_indices = np.random.randint(len(X),size = total_clusters - len(centroids_BSAS))
+            centroids[len(centroids_BSAS):,:] = X[random_indices, :]
+        elif len(centroids_BSAS) > total_clusters:
+            centroids = centroids_BSAS[:no_of_clusters, :]
+        elif len(centroids_BSAS) == total_clusters:
+            centroids = centroids_BSAS
+        
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
         
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
@@ -87,14 +105,19 @@ def relative_validity_fuzzy(X, no_of_clusters):
 
 
 def Dunn_index(X):
+    ''' Calculates the Dunn index of a clustered dataset.
     
+        Parameters: 
+        X: The dataset along with the information about clusters in the last column.
+        
+        Returns:
+        The Dunn index
+    '''
 
     N = len(X)
     m = len(X[0]) - 1
     clusters = np.unique(X[:, m])
-    # The two basic structures of the index. The distance_between_clusters is an upper triangular matrix
-    #distance_between_clusters = np.zeros((len(clusters), len(clusters)))
-    #cluster_diameter = np.zeros((len(clusters)))
+
     min_cluster_distance = max_integer
     max_cluster_diameter = -max_integer - 1
     
@@ -106,7 +129,9 @@ def Dunn_index(X):
     for i, cluster1 in enumerate(clusters):
         # Calculate the diameter of each cluster
         first_cluster_indices = np.where(X[:, m] == cluster1)[0]
-        temp = np.max(dissimilarity_matrix[first_cluster_indices.reshape(len(first_cluster_indices), 1), first_cluster_indices])
+        # Number of vectors in cluster
+        n = len(first_cluster_indices)
+        temp = np.max(dissimilarity_matrix[first_cluster_indices.reshape(n, 1), first_cluster_indices])
         if max_cluster_diameter < temp:
             max_cluster_diameter = temp
         
@@ -114,7 +139,7 @@ def Dunn_index(X):
             # Calculate the distances between the clusters
             second_cluster_indices = np.where(X[:, m] == cluster2)[0]
             # The reshape creates a n x 1 2-d array which is very important for the indexing of the dissimilarity matrix
-            temp = np.min(dissimilarity_matrix[first_cluster_indices.reshape(len(first_cluster_indices), 1), second_cluster_indices])
+            temp = np.min(dissimilarity_matrix[first_cluster_indices.reshape(n, 1), second_cluster_indices])
             if min_cluster_distance > temp:
                 min_cluster_distance = temp
     
@@ -123,35 +148,43 @@ def Dunn_index(X):
 
 
 def Davies_Bouldin(X, centroids):
+    ''' Calculates the Dunn index of a clustered dataset. Whereas in Dunn index the distance between clusters is 
+        the distance between the closest vectors of the clusters, in Davies Bouldin the same distance is the 
+        distance between the centroids.
     
+        Parameters: 
+        X: The dataset along with the information about clusters in the last column.
+        centroids: The centroids returned from the clustering algorithm
+        
+        Returns:
+        The Dunn index
+    '''
     # If a centroids has not been used, the index is implemented in such a way that it is skipped
-    #pote den xrisimopoioume tous centroids monous tous, panta pairnoume mono ta used clustesr
-    # In Dunn index the distance between clusters is the distance between the closest vectors of the clusters
-    # In Davies Bouldin the same distance is the distance between the centroids.
     
     N = len(X)
-    m = len(X[0])
+    m = len(X[0]) - 1
     
-    clusters = np.unique(X[:, m - 1])
+    clusters = np.unique(X[:, m])
+    no_of_clusters = len(clusters)
     # Casting the clusters array to int as we are going to use it later for indexing
     clusters = clusters.astype(int)
     
     # Create a 1-D matrix to hold the values of each cluster's dispersion
-    cluster_dispersion = np.zeros((len(clusters)))
+    cluster_dispersion = np.zeros((no_of_clusters))
     # Create a dissimilarity matrix to hold the distances between the clusters' centroids
-    cluster_distances = np.zeros((len(clusters), len(clusters)))
+    cluster_distances = np.zeros((no_of_clusters, no_of_clusters))
     
     # Calculate dispersion values and clusters' distances in one loop
     for i, cluster in enumerate(clusters): 
-        temp = np.sum(np.power(X[np.where(X[:, m - 1] == cluster)[0], :(m - 1)] - centroids[cluster], 2))
+        temp = np.sum(np.power(X[np.where(X[:, m] == cluster)[0], :m] - centroids[cluster], 2))
         cluster_dispersion[i] = np.sqrt(1/N * temp)
         # Calculate clusters' distances
         cluster_distances[i, :] = euclidean_distance(centroids[clusters, :], centroids[cluster]).reshape(1, len(clusters))
     
     # Create a matrix to hold the similarity indices between clusters
     R = np.zeros((len(clusters), len(clusters)))
-    for i, cluster1 in enumerate(clusters):
-        for j, cluster2 in enumerate(clusters[(i+1):], start = i + 1):
+    for i, _ in enumerate(clusters):
+        for j, _ in enumerate(clusters[(i+1):], start = i + 1):
             R[i, j] =  (cluster_dispersion[i] + cluster_dispersion[j]) / cluster_distances[i, j] 
     
     DB = np.average(np.amax(R, axis = 1))
