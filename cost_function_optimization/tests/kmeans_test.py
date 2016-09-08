@@ -95,7 +95,7 @@ class Test(unittest.TestCase):
         no_of_clusters= 4
         
         # Create the dataset
-        X, y = make_blobs(n_samples=300, centers= no_of_clusters, n_features=2,random_state=None)
+        X, y = make_blobs(n_samples=300, centers= no_of_clusters, n_features=2,random_state=102)
         
         # Successive executions of the clustering algorithm
         no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X, no_of_clusters)

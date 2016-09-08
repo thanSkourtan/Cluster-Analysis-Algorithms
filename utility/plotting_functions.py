@@ -148,10 +148,10 @@ def plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI):
     
     #plt.tight_layout()
     
-    ax1.set_title('Dunn Index')
-    ax2.set_title('Davies - Bouldin')
-    ax3.set_title('Silhouette Index')
-    ax4.set_title('Gap Index')
+    ax1.set_title('Dunn Index(maximum)')
+    ax2.set_title('Davies - Bouldin(minimum)')
+    ax3.set_title('Silhouette Index(maximum)')
+    ax4.set_title('Gap Index(maximum)')
     figure.canvas.set_window_title('Relative Indices')
     
     for subplot in subplots_list:
