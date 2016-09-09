@@ -17,7 +17,7 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 8
         
@@ -90,12 +90,12 @@ class Test(unittest.TestCase):
     
     ################################################## Relative Criteria Clustering #########################
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testRelativeBlobs(self):
         no_of_clusters= 4
         
         # Create the dataset
-        X, y = make_blobs(n_samples=300, centers= no_of_clusters, n_features=2,random_state=102)
+        X, y = make_blobs(n_samples=300, centers= no_of_clusters, n_features=2,random_state=103)
         
         # Successive executions of the clustering algorithm
         no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X, no_of_clusters)

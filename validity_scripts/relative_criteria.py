@@ -10,6 +10,17 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 
 def relative_validity_hard(X, no_of_clusters):
+    ''' Constructs the framework into which successive executions of the 
+        algorithm take place
+        
+        Parameters:
+        X((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters: the number of clusters
+        
+        Returns:
+        no_of_clusters_list: the different number of clusters tried
+        DI, DB, SI, GI : the arrays holding the values of the four indices
+    '''
     # Initialization
     no_of_clusters_list = [i for i in range(2, 11)]
     
@@ -96,12 +107,6 @@ def relative_validity_fuzzy(X, no_of_clusters):
             
     return no_of_clusters_list, values_of_q, PC, PE, XB, FS
     
-        
-    
-
-
-
-
 
 def Dunn_index(X):
     ''' Calculates the Dunn index of a clustered dataset.

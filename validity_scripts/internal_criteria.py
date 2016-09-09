@@ -32,8 +32,8 @@ def gamma(data):
     # Construct the matrix Y
     Y = np.zeros((N, N))
     for i, _ in enumerate(data):
-        same_cluster_indices = np.where(data[:, m] == data[i, m])
-        Y[i, same_cluster_indices[0]] = 1
+        same_cluster_indices = np.where(data[:, m] == data[i, m])[0]
+        Y[i, same_cluster_indices] = 1
     
     # Calculate the Hubert's Gamma Statistic    
     M = N * (N - 1) / 2
