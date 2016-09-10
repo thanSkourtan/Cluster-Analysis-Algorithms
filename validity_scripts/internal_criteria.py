@@ -1,6 +1,7 @@
 from scipy.stats import norm
 from cost_function_optimization import fuzzy_clustering, possibilistic_clustering, kmeans_clustering
 from sequential import BSAS, TTSS
+from graph_theory import MST
 import numpy as np
 from tqdm import tqdm
 
@@ -85,6 +86,9 @@ def monte_carlo(data, no_of_clusters, algorithm):
             X, centroids, no_of_clusters = algorithm(random_data)
         elif algorithm == TTSS.two_threshold_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
+        elif algorithm == MST.minimum_spanning_tree:
+            X, no_of_clusters = algorithm(random_data)
+
 
 
         list_of_gammas.append(gamma(X))

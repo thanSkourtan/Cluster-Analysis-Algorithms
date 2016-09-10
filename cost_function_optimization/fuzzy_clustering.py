@@ -36,7 +36,9 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     # A do - while loop implementation in Python, as the loop needs to run at least once
     condition = True
     
+    round = 1
     while condition:
+        round +=1
         # Update the U matrix 
         for i in range(N):
             # Precalculate euclidean distances for the current vector.

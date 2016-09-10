@@ -3,6 +3,7 @@ from cost_function_optimization import *
 from sequential import *
 import numpy as np
 from tqdm import tqdm
+from graph_theory import MST
 
 
 def external_indices(data, external_data_info):
@@ -121,6 +122,8 @@ def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
             X, centroids, no_of_clusters = algorithm(random_data)
         elif algorithm == TTSS.two_threshold_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
+        elif algorithm == MST.minimum_spanning_tree:
+            X, no_of_clusters = algorithm(random_data)
 
 
 

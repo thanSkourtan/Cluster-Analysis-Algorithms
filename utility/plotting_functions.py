@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
     
     
-def plot_data(X, centroids, no_of_clusters, centroids_history = None ):
+def plot_data(X, no_of_clusters, centroids = None, centroids_history = None ):
     
     # Initialization
     m = len(X[0])
@@ -36,9 +36,10 @@ def plot_data(X, centroids, no_of_clusters, centroids_history = None ):
         for alpha_counter, i in enumerate(range(0, len(centroids_history),  no_of_clusters)):
             for j in range(i, i + no_of_clusters):
                 initDataPlot[1].plot(centroids_history[j, 0], centroids_history[j, 1], c = colors[j % len(colors)], marker = 'x', mew =  1, ms = 15, alpha = 0.2 + alpha_counter * 0.8/(len(centroids_history)/no_of_clusters))
-            
+    
     # Plots the centroids
-    for i, c in enumerate(centroids):
+    if centroids is not None:
+        for i, c in enumerate(centroids):
             initDataPlot[1].plot(centroids[i, 0], centroids[i, 1], c = 'r', marker = 'x', mew=2, ms = 10)
     
     
@@ -157,5 +158,31 @@ def plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI):
     for subplot in subplots_list:
         subplot.set_xlabel('Number of clusters')
         subplot.set_ylabel('Index value')
+
+
+def plot_relative_criteria_graph(no_of_k_list, no_of_f_list, DI, SI):
+    # row and column sharing
+    figure, (ax1, ax2) = plt.subplots(2, 1, figsize = (12,9))
+    
+    subplots_list = (ax1, ax2)
+    
+    # Plot PC
+    for j, q_value in enumerate(no_of_f_list):
+        ax1.plot(no_of_k_list, DI[:, j], label =  q_value)
+        
+    # Plot PE
+    for j, q_value in enumerate(no_of_f_list):
+        ax2.plot(no_of_k_list, SI[:, j], label = q_value)
+        
+    ax1.set_title('Dunn Index(maximum)')
+    ax2.set_title('Silhouette Index(maximum)')
+
+
+    figure.canvas.set_window_title('Relative Indices')
+    
+    for subplot in subplots_list:
+        subplot.set_xlabel('k values')
+        subplot.set_ylabel('Index value')
+        subplot.legend(title = 'f values',framealpha= 0.7)
         
  

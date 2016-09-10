@@ -5,8 +5,34 @@ from sys import maxsize as max_integer
 import matplotlib.pyplot as plt
 from utility.plotting_functions import *
 from sequential import BSAS
+from graph_theory import MST
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
+
+
+def relative_validity_hard_graph(X):
+    # Initialization
+    no_of_k_list = [i for i in np.linspace(2, 10, 9)]
+    no_of_f_list = [i for i in np.linspace(1.5, 3.5, 5)]
+    
+    DI = np.zeros((len(no_of_k_list), len(no_of_f_list)))
+    SI = np.zeros((len(no_of_k_list), len(no_of_f_list)))
+    #GI = np.zeros((len(no_of_k_list), len(no_of_f_list)))
+
+    for i, k_value in tqdm(enumerate(no_of_k_list)):
+        for j, f_value in enumerate(no_of_f_list): 
+            
+            # When X returns it has one more column that needs to be erased
+            X_, no_of_clusters = MST.minimum_spanning_tree(X, k = k_value, f = f_value)
+            #plot_data(X_,  no_of_clusters)
+            #plt.show()
+            
+            # Calculate indices
+            DI[i, j] = Dunn_index(X_)
+            SI[i, j] = silhouette_index(X_)
+            #GI[i] = gap_index(X_, no_of_clusters, MST.minimum_spanning_tree, k_value, f_value)
+
+    return no_of_k_list, no_of_f_list, DI, SI
 
 
 def relative_validity_hard(X, no_of_clusters):
@@ -51,7 +77,7 @@ def relative_validity_hard(X, no_of_clusters):
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
         SI[i] = silhouette_index(X_)
-        GI[i] = gap_index(X_, total_clusters)
+        GI[i] = gap_index(X_, total_clusters, kmeans_clustering.kmeans)
         
         # Print just one clustering effort, the correct one in order to compare it with the indices' signals
         if total_clusters == no_of_clusters:
@@ -227,8 +253,10 @@ def silhouette_index(X):
         cluster_dissimmilarity_matrix = dissimilarity_matrix[cluster_indices.reshape(n, 1), cluster_indices]
             
         for j, vector_index in enumerate(cluster_indices):
-            a[vector_index] = np.sum(cluster_dissimmilarity_matrix[j, :], axis = 0)/(n - 1) #average
-    
+            if n != 1:
+                a[vector_index] = np.sum(cluster_dissimmilarity_matrix[j, :], axis = 0)/(n - 1) #average
+            else:
+                a[vector_index] = np.sum(cluster_dissimmilarity_matrix[j, :], axis = 0)
     
     
     #  b: average_distance_in_closest_cluster. Average distance for vectors belonging to the closest cluster
@@ -316,9 +344,11 @@ def gap_index(X, no_of_clusters):
             min_value = np.min(X[:, j])
             temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
             random_data[:, [j]] = temp
-            
+        
+    
         X_, centroids, centroids_history = kmeans_clustering.kmeans(random_data, no_of_clusters)
         log_W_sample[i] = _gap_index_calculation(X_)
+
             
     Gap = np.average(log_W_sample) - log_W
     
