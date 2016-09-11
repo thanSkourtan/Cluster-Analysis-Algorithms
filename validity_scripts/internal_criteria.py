@@ -1,9 +1,10 @@
 from scipy.stats import norm
 from cost_function_optimization import fuzzy_clustering, possibilistic_clustering, kmeans_clustering
 from sequential import BSAS, TTSS
-from graph_theory import MST
+from graph_theory import MST, MST_Eld_Heg_Var
 import numpy as np
 from tqdm import tqdm
+
 
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
@@ -87,6 +88,8 @@ def monte_carlo(data, no_of_clusters, algorithm):
         elif algorithm == TTSS.two_threshold_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
         elif algorithm == MST.minimum_spanning_tree:
+            X, no_of_clusters = algorithm(random_data)
+        elif algorithm == MST_Eld_Heg_Var.minimum_spanning_tree_variation:
             X, no_of_clusters = algorithm(random_data)
 
 

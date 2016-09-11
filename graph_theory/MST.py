@@ -101,12 +101,14 @@ def minimum_spanning_tree(data, k = 3, q = 1.5, f = 3):
             _dfs_util(MST, s, visited_nodes, cluster_id, clustered_data)
             cluster_id += 1
     
-    #Refinement
+    #Merge
     for i, cluster in enumerate(np.unique(clustered_data[:, m])):
         cluster_indices = np.where(clustered_data[:, m] == cluster)[0] 
         if len(cluster_indices) < 3 :
-            G[cluster_indices, cluster_indices] = max_integer
-            closest_indices = np.argmin(G[cluster_indices, :])
+            # Make the distances of the noisy vectors max_integer, so that to choose the minimum between them and other vectors
+            for index in cluster_indices:
+                G[index, cluster_indices] = max_integer
+            closest_indices = np.argmin(G[cluster_indices, :], axis = 1)
             clustered_data[cluster_indices, m] = clustered_data[closest_indices, m]
     
     no_of_clusters = len(np.unique(clustered_data[:, m]))
@@ -124,6 +126,7 @@ def _dfs_util(MST, s, visited_nodes, cluster_id, data):
         Parameters:
         MST: the minimum spanning tree matrix
         s: the current node index
+        visited_nodes: the list of nodes that have been visited
         cluster_id: the id of the cluster to be assigned to a node
         data: the data matrix
         
