@@ -9,6 +9,52 @@ from graph_theory import MST
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
+def relative_validity_hard_sequential(X):
+    ''' Constructs the framework into which successive executions of the 
+        algorithm take place
+        
+        Parameters:
+        X((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters: the number of clusters
+        
+        Returns:
+        no_of_clusters_list: the different number of clusters tried
+        DI, DB, SI, GI : the arrays holding the values of the four indices
+    '''
+    # Initialization
+    
+    threshold, bins = BSAS.thresholding_BSAS(X)
+    threshold_index = np.where(bins == threshold)[0][0]
+    
+    number_of_threshold_values = 10
+    if threshold_index >= number_of_threshold_values:
+        no_of_threshold_values = [bins[i] for i in range(threshold_index - number_of_threshold_values, threshold_index + number_of_threshold_values)]
+    else:
+        no_of_threshold_values = threshold_index 
+        no_of_threshold_values = [bins[i] for i in range(threshold_index - number_of_threshold_values, threshold_index + number_of_threshold_values)]
+    
+    #no_of_clusters_list = [i for i in range(2, 11)]
+    
+    DI = np.zeros(len(no_of_threshold_values))
+    DB = np.zeros(len(no_of_threshold_values))
+    SI = np.zeros(len(no_of_threshold_values))
+
+
+    for i, threshold_values in tqdm(enumerate(no_of_threshold_values)): # no_of_clusters
+        
+        X_, centroids_BSAS, total_clusters_ = BSAS.basic_sequential_scheme(X, threshold = threshold_values)
+        
+        
+        DI[i] = Dunn_index(X_)
+
+        print('t:', threshold_values)
+
+        DB[i] = Davies_Bouldin(X_, centroids_BSAS)
+        SI[i] = silhouette_index(X_)
+
+    
+    return no_of_threshold_values, DI, DB, SI
+
 
 def relative_validity_hard_graph(X):
     # Initialization
@@ -31,7 +77,7 @@ def relative_validity_hard_graph(X):
     return no_of_k_list, no_of_f_list, DI, SI
 
 
-def relative_validity_hard(X, no_of_clusters):
+def relative_validity_hard(X):
     ''' Constructs the framework into which successive executions of the 
         algorithm take place
         
@@ -68,17 +114,12 @@ def relative_validity_hard(X, no_of_clusters):
         elif len(centroids_BSAS) == total_clusters:
             centroids = centroids_BSAS
         
-        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
+            X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
         
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
         SI[i] = silhouette_index(X_)
         GI[i] = gap_index(X_, total_clusters, kmeans_clustering.kmeans)
-        
-        # Print just one clustering effort, the correct one in order to compare it with the indices' signals
-        if total_clusters == no_of_clusters:
-            plot_data(X_, centroids, total_clusters, centroids_history)
-            
     
     return no_of_clusters_list, DI, DB, SI, GI
 
@@ -139,10 +180,12 @@ def Dunn_index(X):
         Returns:
         The Dunn index
     '''
+    
 
     N = len(X)
     m = len(X[0]) - 1
     clusters = np.unique(X[:, m])
+    if len(clusters) <= 1: return 0
 
     min_cluster_distance = max_integer
     max_cluster_diameter = -max_integer - 1
@@ -157,18 +200,17 @@ def Dunn_index(X):
         first_cluster_indices = np.where(X[:, m] == cluster1)[0]
         # Number of vectors in cluster
         n = len(first_cluster_indices)
-        temp = np.max(dissimilarity_matrix[first_cluster_indices.reshape(n, 1), first_cluster_indices])
-        if max_cluster_diameter < temp:
-            max_cluster_diameter = temp
+        temp1 = np.max(dissimilarity_matrix[first_cluster_indices.reshape(n, 1), first_cluster_indices])
+        if max_cluster_diameter < temp1:
+            max_cluster_diameter = temp1
         
         for j, cluster2 in enumerate(clusters[(i+1):], start = i + 1):
             # Calculate the distances between the clusters
             second_cluster_indices = np.where(X[:, m] == cluster2)[0]
             # The reshape creates a n x 1 2-d array which is very important for the indexing of the dissimilarity matrix
-            temp = np.min(dissimilarity_matrix[first_cluster_indices.reshape(n, 1), second_cluster_indices])
-            if min_cluster_distance > temp:
-                min_cluster_distance = temp
-    
+            temp2 = np.min(dissimilarity_matrix[first_cluster_indices.reshape(n, 1), second_cluster_indices])
+            if min_cluster_distance > temp2:
+                min_cluster_distance = temp2
     # Dunn index is the minimum distance between clusters divided by the maximum diameter
     return min_cluster_distance/max_cluster_diameter
 
@@ -191,6 +233,8 @@ def Davies_Bouldin(X, centroids):
     m = len(X[0]) - 1
     
     clusters = np.unique(X[:, m])
+    if len(clusters) <= 1: return 1
+    
     no_of_clusters = len(clusters)
     # Casting the clusters array to int as we are going to use it later for indexing
     clusters = clusters.astype(int)
@@ -231,7 +275,7 @@ def silhouette_index(X):
     N= len(X)
     m = len(X[0]) - 1
     clusters = np.unique(X[:, m])
-    
+    if len(clusters) <= 1: return -1
     # Construct the dissimilarity matrix
     dissimilarity_matrix = np.empty((N, N)) 
     for j, point in enumerate(X):
@@ -323,7 +367,7 @@ def _gap_index_calculation(X):
     return np.log(W)
 
 
-def gap_index(X, no_of_clusters):
+def gap_index(X, no_of_clusters, algorithm):
     
     log_W = _gap_index_calculation(X)
     # Create an array to hold the logW values of the 100 monte carlo simulations
@@ -340,9 +384,11 @@ def gap_index(X, no_of_clusters):
             min_value = np.min(X[:, j])
             temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
             random_data[:, [j]] = temp
-        
-    
-        X_, centroids, centroids_history = kmeans_clustering.kmeans(random_data, no_of_clusters)
+            
+        if algorithm == kmeans_clustering.kmeans:
+            X_, centroids, centroids_history = kmeans_clustering.kmeans(random_data, no_of_clusters)
+
+            
         log_W_sample[i] = _gap_index_calculation(X_)
 
             

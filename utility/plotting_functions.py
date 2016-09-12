@@ -156,7 +156,7 @@ def plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI):
     figure.canvas.set_window_title('Relative Indices')
     
     for subplot in subplots_list:
-        subplot.set_xlabel('Number of clusters')
+        subplot.set_xlabel('Parameter value')
         subplot.set_ylabel('Index value')
 
 
@@ -185,4 +185,30 @@ def plot_relative_criteria_graph(no_of_k_list, no_of_f_list, DI, SI):
         subplot.set_ylabel('Index value')
         subplot.legend(title = 'f values',framealpha= 0.7)
         
- 
+def plot_relative_criteria_sequential(no_of_clusters_list, DI, DB, SI):
+    # row and column sharing
+    figure, ((ax1, ax2, ax3)) = plt.subplots(3, 1, figsize = (12,9))
+    
+    subplots_list = (ax1, ax2, ax3)
+    
+    # Plot DI
+    ax1.plot(no_of_clusters_list, DI)
+    
+    # Plot DB
+    ax2.plot(no_of_clusters_list, DB)
+    
+    # Plot SI
+    ax3.plot(no_of_clusters_list, SI)
+
+    
+    #plt.tight_layout()
+    
+    ax1.set_title('Dunn Index(maximum)')
+    ax2.set_title('Davies - Bouldin(minimum)')
+    ax3.set_title('Silhouette Index(maximum)')
+
+    figure.canvas.set_window_title('Relative Indices')
+    
+    for subplot in subplots_list:
+        subplot.set_xlabel('Parameter value')
+        subplot.set_ylabel('Index value')

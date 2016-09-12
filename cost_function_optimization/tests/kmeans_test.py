@@ -98,7 +98,7 @@ class Test(unittest.TestCase):
         X, y = make_blobs(n_samples=300, centers= no_of_clusters, n_features=2,random_state=103)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X, no_of_clusters)
+        no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X)
         
         # Plot the indices
         plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI)

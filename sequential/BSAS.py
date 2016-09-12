@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import argrelextrema
+from sys import maxsize as max_integer
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
-def basic_sequential_scheme(data, max_number_of_clusters = 10):
+def basic_sequential_scheme(data, max_number_of_clusters = 10, threshold = max_integer):
     ''' An implementation of the basic sequential scheme clustering algorithm.
     
     Parameters:
@@ -21,7 +22,8 @@ def basic_sequential_scheme(data, max_number_of_clusters = 10):
     m = len(data[0])
     
     # Automatically calculating threshold by peaks and valleys technique
-    threshold = thresholding_BSAS(data)
+    if threshold == max_integer:
+        threshold, _ = thresholding_BSAS(data)
     
     # We keep two copies of the data matrix, one with the cluster column
     clusters = np.zeros((N, 1))
@@ -37,7 +39,7 @@ def basic_sequential_scheme(data, max_number_of_clusters = 10):
         distance_from_centroids = euclidean_distance(centroids, vector)
         nearest_cluster_distance = np.min(distance_from_centroids)
         nearest_cluster = np.argmin(distance_from_centroids)
-        if nearest_cluster_distance > threshold and cluster_index < max_number_of_clusters:
+        if nearest_cluster_distance > threshold and cluster_index < max_number_of_clusters - 1:
             cluster_index += 1
             clustered_data[i, m] = cluster_index
             # Add new Centroid
@@ -91,6 +93,7 @@ def thresholding_BSAS(data):
         k += len(temp_data)
     
     #n, bins, patches = plt.hist(distances, bins = 50, color = 'g')
+    
     n, bins  = np.histogram(distances, bins = 50) # calculating, not plotting
     
     # Peak and valley seeking
@@ -100,7 +103,8 @@ def thresholding_BSAS(data):
     sorted_list_of_peaks_indices = [index for value, index in sorted(zip(all_peaks_values, all_peaks_indices))]
     two_largest_peaks = sorted_list_of_peaks_indices[-2:]
     temp = sorted(two_largest_peaks)
-    
+
+
     # The first if statement applies to monte carlo simulations where the data do not have structure, 
     # so there might be only one peak
     if len(temp) < 2:
@@ -109,7 +113,7 @@ def thresholding_BSAS(data):
         deepest_valley_bin = np.argmin(n[temp[0]:temp[1] + 1]) + temp[0]
     deepest_valley = bins[deepest_valley_bin]
   
-    return deepest_valley
+    return deepest_valley, bins
     
     
     

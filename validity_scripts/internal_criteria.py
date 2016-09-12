@@ -94,6 +94,7 @@ def monte_carlo(data, no_of_clusters, algorithm):
 
 
 
+
         list_of_gammas.append(gamma(X))
     
     return list_of_gammas
