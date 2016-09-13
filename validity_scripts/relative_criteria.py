@@ -7,6 +7,7 @@ from utility.plotting_functions import *
 from sequential import BSAS
 from graph_theory import MST
 
+
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 def relative_validity_hard_sequential(X):
@@ -124,7 +125,7 @@ def relative_validity_hard(X):
     return no_of_clusters_list, DI, DB, SI, GI
 
 
-def relative_validity_fuzzy(X, no_of_clusters):
+def relative_validity_fuzzy(X):
     ''' Constructs the framework into which successive executions of the 
         algorithm take place
         
@@ -139,7 +140,7 @@ def relative_validity_fuzzy(X, no_of_clusters):
     '''
     # Initialization
     no_of_clusters_list = [i for i in range(2, 11)]
-    values_of_q = [1.25, 1.5, 2, 2.5, 3, 3.5, 5]
+    values_of_q = [1.25, 1.5, 1.75]
     
     # Initialize arrays to hold the indices. We use separate arrays for easier modification of the code if needed.
     # If we wanted to use one array then this would be a 3 - dimensional array.
@@ -153,20 +154,15 @@ def relative_validity_fuzzy(X, no_of_clusters):
         centroids_initial = np.random.choice(np.arange(np.min(X), np.max(X), 0.1), size = (total_clusters, len(X[0])), replace = False)
         
         for j, q_value in enumerate(values_of_q): #edw vazw to q
-            
+
             # When X returns it has one more column that needs to be erased
             X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, total_clusters, centroids_initial, q = q_value)
-                
+
             # Calculate indices
             PC[i, j] = partition_coefficient(X, partition_matrix)
             PE[i, j] = partition_entropy(X, partition_matrix)
             XB[i, j] = Xie_Beni(X, centroids, partition_matrix)
-            FS[i, j] = fukuyama_sugeno(X, centroids, partition_matrix, q = 2)
-             
-            # Print just one clustering effort, the correct one in order to compare it with the indices' signals
-            if q_value == 1.25 and total_clusters == no_of_clusters:
-                plot_data(X_, centroids, total_clusters, centroids_history)
-                
+            FS[i, j] = fukuyama_sugeno(X, centroids, partition_matrix, q = 2)   
             
     return no_of_clusters_list, values_of_q, PC, PE, XB, FS
     
@@ -396,7 +392,7 @@ def gap_index(X, no_of_clusters, algorithm):
     
     return Gap        
             
-    
+################################ fuzzy indices #######################    
 
 # Lambda functions in order to calculate the same name indices
 partition_coefficient = lambda X, partition_matrix: np.round(1/len(X) * np.sum(np.power(partition_matrix, 2)), 5)
@@ -437,7 +433,6 @@ def Xie_Beni(X, centroids, partition_matrix):
                     min_distance = distance 
                 
     Xie_Beni = total_variation/(min_distance * len(X))
-    
     return Xie_Beni
 
 

@@ -26,7 +26,7 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     partition_matrix = np.zeros((N, no_of_clusters))
     no_of_features = len(data[0])
     # if the centroid are provided as parameter use them, otherwise create them
-    if centroids_initial == None:
+    if centroids_initial is None:
         centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, no_of_features), replace = False)
     else:
         centroids_old = centroids_initial
@@ -35,10 +35,9 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     
     # A do - while loop implementation in Python, as the loop needs to run at least once
     condition = True
-    
-    round = 1
-    while condition:
-        round +=1
+    counter = 1
+    while condition and counter < 100:
+        counter += 1
         # Update the U matrix 
         for i in range(N):
             # Precalculate euclidean distances for the current vector.
@@ -63,6 +62,7 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     for i, centroid in enumerate(centroids_new):
         ita.append(np.sum(np.power(partition_matrix[:, [i]],q) * euclidean_distance(data, centroid)) / np.sum(np.power(partition_matrix[:, i], q)))
     
+
     # Assign each vector to a cluster taking the greatest u
     assigned_cluster = np.argmax(partition_matrix, axis = 1) 
     data = np.hstack((data, assigned_cluster.reshape(N, 1)))
