@@ -8,6 +8,8 @@ from scipy.stats import norm
 from tqdm import tqdm
 from sys import maxsize as max_integer
 from utility.plotting_functions import *
+from scipy import misc, ndimage
+
 
 import unittest
 
@@ -17,7 +19,7 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 8
         
@@ -29,7 +31,7 @@ class Test(unittest.TestCase):
         X, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters, centroids_initial = centroids)
 
         # Plotting
-        plot_data(X, centroids, no_of_clusters, centroids_history)
+        plot_data(X, no_of_clusters, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, kmeans_clustering.kmeans)
@@ -105,11 +107,66 @@ class Test(unittest.TestCase):
         plt.show()       
     
     
+    
+    
+    
                 
-                
-                
+    ################################################## Image Segmentation #########################
+    
+    
+    @unittest.skip('no')
+    def testRelativeImageSegmentation(self):
+        #image = ndimage.imread('..//..//..//..//spongebob.jpg')
+        image = ndimage.imread('..//..//..//..//sample2.jpg')
         
-
+        # Successive executions of the clustering algorithm
+        no_of_clusters_list, DB = relative_criteria.relative_validity_hard_large_data(image)
+        
+        # Plot the indices
+        plot_relative_criteria_hard_large_data(no_of_clusters_list, DB)
+        plt.show()
+    
+    
+    #@unittest.skip('no')
+    def testImageSegmentation(self):
+        #image = ndimage.imread('..//..//..//..//simpsons.jpg')
+        #image = ndimage.imread('..//..//..//..//test.png')
+        image = ndimage.imread('..//..//..//..//spongebob.jpg')
+        #image = ndimage.imread('..//..//..//..//sample2.jpg')
+        
+        # We run BSAS first to get estimates for the centroids
+        clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(image)
+        X, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = 4, centroids_initial = centroids)
+        
+        # Builds an empty image numpy array with the same dimensions as our image
+        picture = np.empty(image.shape)
+        
+        
+        
+        clusters = np.unique(X[:, :, 3])
+        
+        
+        np.random.seed(14)
+        for i, cluster_ in enumerate(clusters):
+            x, y = np.where(X[:, :, 3] == cluster_)
+            random_color = np.random.randint(256, size = (1,3))
+            picture[x, y] = random_color
+            print(random_color)
+        
+        plt.imshow(picture)
+        plt.show()
+        
+        
+        
+        
+        
+        
+        
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
+    
+    
+    
+    

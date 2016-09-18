@@ -159,6 +159,21 @@ def plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI):
         subplot.set_xlabel('Parameter value')
         subplot.set_ylabel('Index value')
 
+def plot_relative_criteria_hard_large_data(no_of_clusters_list, DB):
+
+    # Plot DB
+    plt.plot(no_of_clusters_list, DB)
+    
+    
+    plt.title('Davies - Bouldin(minimum)')
+    
+    fig = plt.gcf()
+    fig.canvas.set_window_title('Relative Indices')
+    
+    plt.xlabel('Parameter value')
+    plt.ylabel('Index value')
+        
+        
 
 def plot_relative_criteria_graph(no_of_k_list, no_of_f_list, DI, SI):
     # row and column sharing

@@ -95,21 +95,21 @@ def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
         
     '''
     N = len(data)
-    m = len(data[0])
+    m = len(data[0]) - 1
     
     # Monte Carlo simulation - create the datasets (random position hypothesis)
-    list_of_indices = np.zeros((4, 0)) #cause we have 4 indices
+    list_of_indices = np.zeros((4, 100)) #cause we have 4 indices
     pbar = tqdm(range(100))
     pbar.set_description('Monte carlo sim. - external indices')
-    
-    for _ in pbar:
-        random_data = np.empty((N, 0))
+    j = 0
+    while j < 100:
+        random_data = np.empty((N, m))
         
-        for i  in range(m - 1):
+        for i  in range(m):
             max_value = np.amax(data[:, i])
             min_value = np.min(data[:, i])
             temp = (max_value - min_value) * np.random.random(size = (N, 1)) + min_value
-            random_data = np.concatenate((random_data, temp), axis = 1)
+            random_data[:, [i]] = temp
             
         if algorithm == fuzzy_clustering.fuzzy:
             X, centroids, ita, centroids_history, partition_matrix = algorithm(random_data, no_of_clusters)
@@ -120,17 +120,20 @@ def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
             X, centroids, centroids_history = algorithm(random_data, no_of_clusters)
         elif algorithm == BSAS.basic_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
+            if(X is None):
+                continue
         elif algorithm == TTSS.two_threshold_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
         elif algorithm == MST.minimum_spanning_tree:
             X, no_of_clusters = algorithm(random_data)
         elif algorithm == MST_Eld_Heg_Var.minimum_spanning_tree_variation:
             X, no_of_clusters = algorithm(random_data)
-
-
-
+            
+            
+        print(j)
         temp = np.array(external_indices(X, external_data_info)).reshape(4, 1)
-        list_of_indices= np.concatenate((list_of_indices, temp), axis = 1)
+        list_of_indices[:, [j]] = temp
+        j += 1
     
     return list_of_indices
 

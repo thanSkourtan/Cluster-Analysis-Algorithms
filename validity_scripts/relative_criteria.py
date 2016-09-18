@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from utility.plotting_functions import *
 from sequential import BSAS
 from graph_theory import MST
+from functools import reduce
 
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
@@ -78,6 +79,45 @@ def relative_validity_hard_graph(X):
     return no_of_k_list, no_of_f_list, DI, SI
 
 
+
+def relative_validity_hard_large_data(X):
+    # Initialization
+    no_of_clusters_list = [i for i in range(2, 11)]
+    
+    DB = np.zeros(len(no_of_clusters_list))
+    
+    # Centroids must remain the same. The only parameter that should change is the number of clusters 
+    clustered_data, centroids_BSAS, total_clusters_ = BSAS.basic_sequential_scheme(X)
+
+    for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
+        
+        if len(centroids_BSAS) < total_clusters:
+            centroids = np.zeros((total_clusters, len(X[0])))
+            # First centroids values
+            centroids[:len(centroids_BSAS),:] = centroids_BSAS 
+            # Last centroids values
+            random_indices = np.random.randint(len(X),size = total_clusters - len(centroids_BSAS))
+            centroids[len(centroids_BSAS):,:] = X[random_indices, :]
+        elif len(centroids_BSAS) > total_clusters:
+            centroids = centroids_BSAS[:total_clusters, :]
+        elif len(centroids_BSAS) == total_clusters:
+            centroids = centroids_BSAS
+        
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
+        
+        DB[i] = Davies_Bouldin(X_, centroids)
+
+    return no_of_clusters_list, DB
+
+
+
+
+
+
+
+
+
+
 def relative_validity_hard(X):
     ''' Constructs the framework into which successive executions of the 
         algorithm take place
@@ -115,8 +155,8 @@ def relative_validity_hard(X):
         elif len(centroids_BSAS) == total_clusters:
             centroids = centroids_BSAS
         
-            X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
-        
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
+        print('lalaoeoeoe')
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
         SI[i] = silhouette_index(X_)
@@ -165,7 +205,9 @@ def relative_validity_fuzzy(X):
             FS[i, j] = fukuyama_sugeno(X, centroids, partition_matrix, q = 2)   
             
     return no_of_clusters_list, values_of_q, PC, PE, XB, FS
-    
+
+
+###############################################################################################
 
 def Dunn_index(X):
     ''' Calculates the Dunn index of a clustered dataset.
@@ -225,10 +267,16 @@ def Davies_Bouldin(X, centroids):
     '''
     # If a centroids has not been used, the index is implemented in such a way that it is skipped
     
-    N = len(X)
-    m = len(X[0]) - 1
+    # Initializations
+
+    N = reduce(lambda x, y: x * y, X.shape[:-1]) 
+    m = X.shape[-1] 
     
-    clusters = np.unique(X[:, m])
+    # No matter what is the dimensions of the input data array, we convert it to 2-D array, we implement the algorithm and then we turn it back to its
+    # original dimensions 
+    X = X.reshape(N, m)
+    
+    clusters = np.unique(X[:, m - 1])
     if len(clusters) <= 1: return 1
     
     no_of_clusters = len(clusters)
@@ -242,7 +290,7 @@ def Davies_Bouldin(X, centroids):
     
     # Calculate dispersion values and clusters' distances in one loop
     for i, cluster in enumerate(clusters): 
-        temp = np.sum(np.power(X[np.where(X[:, m] == cluster)[0], :m] - centroids[cluster], 2))
+        temp = np.sum(np.power(X[np.where(X[:, m - 1] == cluster)[0], :m - 1] - centroids[cluster], 2))
         cluster_dispersion[i] = np.sqrt(1/N * temp)
         # Calculate clusters' distances
         cluster_distances[i, :] = euclidean_distance(centroids[clusters, :], centroids[cluster]).reshape(1, len(clusters))

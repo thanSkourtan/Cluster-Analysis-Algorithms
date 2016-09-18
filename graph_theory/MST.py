@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import *
 from sys import maxsize as max_integer
+from functools import reduce as reduce
+from tqdm import tqdm
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
@@ -21,11 +23,18 @@ def minimum_spanning_tree(data, k = 3, q = 1.5, f = 3):
                                                     better visualisation of the result. 
 
     '''
-    N = len(data)
-    m = len(data[0])
+    N = reduce(lambda x, y: x * y, data.shape[:-1]) # number of vectors CHANGE : N = len(data)
+    m = data.shape[-1] #CHANGE: m = len(data[0])
+    
+    data = data.reshape(N, m) #CHANGE: erase this line
+    
     # Construct the complete Graph G
-    G = np.empty((N, N)) 
-    for i, point in enumerate(data):
+    G = np.empty((N, N))  #o pinakas twn apostasewn tha einai panta disdiastatos. ola ta simeia ston x, ola ta simeia ston y
+                           # to N pali tha einai to plithos twn simeion
+                           
+    ###############################
+    
+    for i, point in enumerate(data): #use the data array as a 2-D array for this loop only
         G[:, [i]] = euclidean_distance(data,point)
     
     # Construct the MST using the Kruskal's algorithm
@@ -64,7 +73,7 @@ def minimum_spanning_tree(data, k = 3, q = 1.5, f = 3):
     inconsistent = np.zeros(N - 1) #follows x_list, y_list
     
     # Find all pairs of nodes of edges
-    for i, nodes in enumerate(zip(x_list, y_list)):
+    for i, nodes in tqdm(enumerate(zip(x_list, y_list))):
         weight = MST[nodes[0], nodes[1]]
         list_of_weights_N1 = np.empty((0, 0))
         list_of_weights_N2 = np.empty((0, 0))
@@ -91,7 +100,7 @@ def minimum_spanning_tree(data, k = 3, q = 1.5, f = 3):
         MST[x_list[index], y_list[index]] = MST[y_list[index], x_list[index]] = 0
     
     visited_nodes = np.zeros(N)
-    
+    print('here')
     # Implementing Dfs in order to find a forest of trees
     cluster_id = 1
     for s in range(N):
@@ -115,7 +124,8 @@ def minimum_spanning_tree(data, k = 3, q = 1.5, f = 3):
     
     # Visual debugging
     #plot_MST_for_debug(clustered_data, MST, inconsistent, x_list, y_list)
-    
+    print(clustered_data)
+    print(no_of_clusters)
     return clustered_data, no_of_clusters
 
     

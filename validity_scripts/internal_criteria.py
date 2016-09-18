@@ -67,7 +67,8 @@ def monte_carlo(data, no_of_clusters, algorithm):
     list_of_gammas = []
     pbar = tqdm(range(100))
     pbar.set_description('Monte carlo sim. - internal indices')
-    for _ in pbar:
+    j = 0
+    while j < 100:
         random_data = np.empty((N, m))
         
         for i  in range(m):
@@ -85,6 +86,8 @@ def monte_carlo(data, no_of_clusters, algorithm):
             X, centroids, centroids_history = algorithm(random_data, no_of_clusters)
         elif algorithm == BSAS.basic_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
+            if(X is None):
+                continue
         elif algorithm == TTSS.two_threshold_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
         elif algorithm == MST.minimum_spanning_tree:
@@ -92,10 +95,9 @@ def monte_carlo(data, no_of_clusters, algorithm):
         elif algorithm == MST_Eld_Heg_Var.minimum_spanning_tree_variation:
             X, no_of_clusters = algorithm(random_data)
 
-
-
-
         list_of_gammas.append(gamma(X))
+        print(j)
+        j += 1
     
     return list_of_gammas
     
