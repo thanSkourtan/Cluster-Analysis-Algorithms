@@ -16,7 +16,7 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 4
         

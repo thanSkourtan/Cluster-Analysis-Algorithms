@@ -16,19 +16,20 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 class Test(unittest.TestCase):
 
 
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testBlobs(self):
-        no_of_clusters = 3
+        no_of_clusters = 4
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 5000, centers= no_of_clusters, n_features=2,random_state=None)
+        X, y = make_blobs(n_samples = 500, centers= no_of_clusters, n_features=2,random_state = 46)
         
         # Run the clustering algorithm. First run fuzzy clustering to get ita and centroids
-        X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, no_of_clusters)
-        X, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(X, no_of_clusters, ita, centroids_initial = centroids)
+        clusters_number_to_execute = 3
+        X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, clusters_number_to_execute)
+        X, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(X, clusters_number_to_execute, ita, centroids_initial = centroids)
 
         # Plotting
-        plot_data(X, no_of_clusters, centroids, centroids_history)
+        plot_data(X, clusters_number_to_execute, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
@@ -94,51 +95,48 @@ class Test(unittest.TestCase):
     # Although the code below works, we will not calculate relative indices for possibilistic 
     # clustering.
     # No relative indices for possibilistic
-    '''
+    
     @unittest.skip('no')
     def testRelativeBlobs(self):
-        no_of_clusters= 5
+        no_of_clusters= 4
         
         # Create the dataset
-        X, y = make_blobs(n_samples=100, centers= no_of_clusters, n_features=2,random_state=20)
+        X, y = make_blobs(n_samples=500, centers= no_of_clusters, n_features=2,random_state=46)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_possibilistic(X)
         
         # Plot the indices
-        plot_relative_criteria(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
+        plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
         plt.show()        
     
-    
+    '''
     @unittest.skip('no')
     def testRelativeCircles(self):
-        no_of_clusters= 2
-        
         # Create the dataset
-        X, y = make_circles(n_samples=100, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
+        X, y = make_circles(n_samples=500, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_fuzzy(X)
         
         # Plot the indices
-        plot_relative_criteria(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
+        plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
         plt.show()      
     
     
     @unittest.skip('no')
     def testRelativeMoons(self):
-        no_of_clusters= 2
-        
         # Create the dataset
-        X, y = make_moons(n_samples=100, shuffle = True, noise = 0.1, random_state = 10)
+        X, y = make_moons(n_samples=500, shuffle = True, noise = 0.01, random_state = 10)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_fuzzy(X)
         
         # Plot the indices
-        plot_relative_criteria(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
-        plt.show() 
-        '''
+        plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
+        plt.show()      
+    '''
+    
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

@@ -207,6 +207,58 @@ def relative_validity_fuzzy(X):
     return no_of_clusters_list, values_of_q, PC, PE, XB, FS
 
 
+
+def relative_validity_possibilistic(X):
+    ''' Constructs the framework into which successive executions of the 
+        algorithm take place
+        
+        Parameters:
+        X((m x n) 2-d numpy array): a data set of m instances and n features
+        no_of_clusters: the number of clusters
+        
+        Returns:
+        no_of_clusters_list: the different number of clusters tried
+        values_of_q: the different values of q that were tried.
+        PC, PE, XB, FS : the arrays holding the values of the four indices
+    '''
+    # Initialization
+    no_of_clusters_list = [i for i in range(2, 11)]
+    values_of_q = [1.25, 1.5, 1.75]
+    
+    # Initialize arrays to hold the indices. We use separate arrays for easier modification of the code if needed.
+    # If we wanted to use one array then this would be a 3 - dimensional array.
+    PC = np.zeros((len(no_of_clusters_list), len(values_of_q)))
+    PE = np.zeros((len(no_of_clusters_list), len(values_of_q)))
+    XB = np.zeros((len(no_of_clusters_list), len(values_of_q)))
+    FS = np.zeros((len(no_of_clusters_list), len(values_of_q)))
+    
+    for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
+        # IMPORTANT: The centroids must remain the same for every run of the algorithm with the same no_of_clusters
+        centroids_initial = np.random.choice(np.arange(np.min(X), np.max(X), 0.1), size = (total_clusters, len(X[0])), replace = False)
+        
+        for j, q_value in enumerate(values_of_q): #edw vazw to q
+
+            # When X returns it has one more column that needs to be erased
+            X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, total_clusters, centroids_initial, q = q_value)
+            X_, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(X, total_clusters, ita, centroids_initial = centroids, q = q_value)
+
+
+            # Calculate indices
+            # In order to calculate indices we pass them the normalized typicality matrix, see Yang, Wu, Unsupervised possibilistic learning
+            
+            typicality_matrix_norm = typicality_matrix / np.sum(typicality_matrix, axis = 1).reshape(len(X), 1)
+            
+            PC[i, j] = partition_coefficient(X, typicality_matrix_norm)
+            PE[i, j] = partition_entropy(X, typicality_matrix_norm)
+            XB[i, j] = Xie_Beni(X, centroids, typicality_matrix_norm)
+            FS[i, j] = fukuyama_sugeno(X, centroids, typicality_matrix_norm, q = 2)   
+            
+    return no_of_clusters_list, values_of_q, PC, PE, XB, FS
+
+
+
+
+
 ###############################################################################################
 
 def Dunn_index(X):
