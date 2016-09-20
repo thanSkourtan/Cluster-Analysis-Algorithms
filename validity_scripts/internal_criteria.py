@@ -6,7 +6,6 @@ import numpy as np
 from tqdm import tqdm
 
 
-
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 def gamma(data):
@@ -26,7 +25,7 @@ def gamma(data):
     N = len(data)
     m = len(data[0]) - 1
     
-    # Construct the proximity matrix P
+    # Construct the proximity matrix P. This always takes a lot of time.
     P = np.empty((N, N)) 
     for i, point in enumerate(data):
         P[:, [i]] =  euclidean_distance(data[:, :m],point[:m])
@@ -65,8 +64,8 @@ def monte_carlo(data, no_of_clusters, algorithm):
     
     # Monte Carlo simulation - create the datasets (random position hypothesis)
     list_of_gammas = []
-    pbar = tqdm(range(100))
-    pbar.set_description('Monte carlo sim. - internal indices')
+    #pbar = tqdm(range(100))
+    #pbar.set_description('Monte carlo sim. - internal indices')
     j = 0
     while j < 100:
         random_data = np.empty((N, m))
@@ -87,7 +86,7 @@ def monte_carlo(data, no_of_clusters, algorithm):
         elif algorithm == BSAS.basic_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
             if(X is None):
-                continue
+                continue # Being able to rerun this loop is the reason we use a while instead of a for loop
         elif algorithm == TTSS.two_threshold_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
         elif algorithm == MST.minimum_spanning_tree:

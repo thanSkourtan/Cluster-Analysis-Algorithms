@@ -99,8 +99,8 @@ def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
     
     # Monte Carlo simulation - create the datasets (random position hypothesis)
     list_of_indices = np.zeros((4, 100)) #cause we have 4 indices
-    pbar = tqdm(range(100))
-    pbar.set_description('Monte carlo sim. - external indices')
+    #pbar = tqdm(range(100))
+    #pbar.set_description('Monte carlo sim. - external indices')
     j = 0
     while j < 100:
         random_data = np.empty((N, m))

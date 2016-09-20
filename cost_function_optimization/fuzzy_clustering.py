@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
@@ -36,24 +37,39 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     # A do - while loop implementation in Python, as the loop needs to run at least once
     condition = True
     counter = 1
-    while condition and counter < 100:
+
+    while condition and counter < 50:
         counter += 1
-        # Update the U matrix 
+        
+        '''
         for i in range(N):
             # Precalculate euclidean distances for the current vector.
             eucl_dist = euclidean_distance(centroids_old, data[i,:])
             for j in range(no_of_clusters):
                 partition_matrix[i][j] = 1 / np.sum(np.power((1./eucl_dist) * eucl_dist[j, 0], (1/(q-1))))
+        '''
         
+        # Update the U matrix 
+        # The loop above was replaced by the loops below for optimization reasons
+        distance_matrix = np.empty((N, no_of_clusters))
+        for i in range(no_of_clusters):
+            #precalculate euclidean distances for the instance. instance is the point, centroids are the data
+            distance_matrix[:, [i]] = euclidean_distance(data, centroids_old[i, :])
+        for i in range(no_of_clusters):   
+            partition_matrix[:, [i]] = 1 / np.sum(np.power((1./distance_matrix) * distance_matrix[:, [i]], (1/(q-1))), axis = 1).reshape(N, 1)
+
+
         # Update the centroids
+        
         for i, centroid in enumerate(centroids_old):
             centroids_new[i] = np.sum(np.power(partition_matrix[:,[i]], q) * data,axis = 0) / np.sum(np.power(partition_matrix[:,i], q))
         
+
         # Update the termination criterion where e = 0.00001
         criterion_array = np.absolute(centroids_new - centroids_old) < 0.00001
         if np.all(criterion_array) :
             condition = False
-        
+
         centroids_old = np.copy(centroids_new)
         centroids_history = np.vstack((centroids_history, centroids_old))
     
@@ -61,7 +77,6 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     ita = []
     for i, centroid in enumerate(centroids_new):
         ita.append(np.sum(np.power(partition_matrix[:, [i]],q) * euclidean_distance(data, centroid)) / np.sum(np.power(partition_matrix[:, i], q)))
-    
 
     # Assign each vector to a cluster taking the greatest u
     assigned_cluster = np.argmax(partition_matrix, axis = 1) 

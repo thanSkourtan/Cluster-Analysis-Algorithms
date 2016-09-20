@@ -16,7 +16,7 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 4
         
@@ -63,7 +63,7 @@ class Test(unittest.TestCase):
         
         plt.show()
         
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testMoons(self):
         # Create the dataset
         X, y = make_moons(n_samples=300, shuffle = True, noise = 0.05, random_state = 10)
@@ -88,7 +88,7 @@ class Test(unittest.TestCase):
     
     ######################### Relative Criteria Clustering #########################
     
-    @unittest.skip('no')
+    #@unittest.skip('no')
     def testRelativeBlobs(self):
         no_of_clusters= 4
         

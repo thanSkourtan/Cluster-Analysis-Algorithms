@@ -21,15 +21,15 @@ class Test(unittest.TestCase):
         no_of_clusters = 3
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 100, centers= no_of_clusters, n_features=2,random_state=None)
+        X, y = make_blobs(n_samples = 5000, centers= no_of_clusters, n_features=2,random_state=None)
         
-        # Run the clustering algorithm. First run fuzzy clustering to get ita
+        # Run the clustering algorithm. First run fuzzy clustering to get ita and centroids
         X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(X, no_of_clusters)
         X, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(X, no_of_clusters, ita, centroids_initial = centroids)
 
         # Plotting
-        plot_data(X, centroids, no_of_clusters, centroids_history)
-        '''
+        plot_data(X, no_of_clusters, centroids, centroids_history)
+        
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
         initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y,  possibilistic_clustering.possibilistic)
@@ -37,7 +37,7 @@ class Test(unittest.TestCase):
         # Histogram of gammas from internal criteria 
         hist_internal_criteria(initial_gamma, list_of_gammas, result)
         hist_external_criteria(initial_indices, list_of_indices, result_list)
-        '''
+        
         plt.show()
         
     @unittest.skip("no")
