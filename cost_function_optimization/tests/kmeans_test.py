@@ -4,11 +4,9 @@ import matplotlib.pyplot as plt
 from cost_function_optimization import kmeans_clustering
 from sequential import BSAS
 from validity_scripts import internal_criteria, external_criteria, relative_criteria
-from scipy.stats import norm
-from tqdm import tqdm
-from sys import maxsize as max_integer
 from utility.plotting_functions import *
-from scipy import misc, ndimage
+from scipy import ndimage
+from utility import image_segm_utility
 
 
 import unittest
@@ -21,17 +19,17 @@ class Test(unittest.TestCase):
 
     @unittest.skip("no")
     def testBlobs(self):
-        no_of_clusters = 8
+        no_of_clusters = 4
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 1000, centers= no_of_clusters, n_features=2,random_state=11)
+        X, y = make_blobs(n_samples = 500, centers= no_of_clusters, n_features=2,random_state=185)
         
         # Run the clustering algorithm but first run a sequential algorithm to obtain initial centroids
         clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(X)
-        X, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters, centroids_initial = centroids)
+        X, centroids, centroids_history = kmeans_clustering.kmeans(X, 5, centroids_initial = centroids)
 
         # Plotting
-        plot_data(X, no_of_clusters, centroids, centroids_history)
+        plot_data(X, 5, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, kmeans_clustering.kmeans)
@@ -48,13 +46,13 @@ class Test(unittest.TestCase):
         no_of_clusters = 2
         
         # Create the dataset
-        X, y = make_circles(n_samples=300, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
+        X, y = make_circles(n_samples=500, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
         
         # Run the clustering algorithm
         X, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters)
         
         # Plotting
-        plot_data(X, centroids, no_of_clusters, centroids_history)
+        plot_data(X, no_of_clusters, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, kmeans_clustering.kmeans)
@@ -77,7 +75,7 @@ class Test(unittest.TestCase):
         X, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters)
         
         # Plotting
-        plot_data(X, centroids, no_of_clusters, centroids_history)
+        plot_data(X, no_of_clusters, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, kmeans_clustering.kmeans)
@@ -97,7 +95,7 @@ class Test(unittest.TestCase):
         no_of_clusters= 4
         
         # Create the dataset
-        X, y = make_blobs(n_samples=300, centers= no_of_clusters, n_features=2,random_state=103)
+        X, y = make_blobs(n_samples=500, centers= no_of_clusters, n_features=2,random_state=185)
         
         # Successive executions of the clustering algorithm
         no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X)
@@ -107,7 +105,30 @@ class Test(unittest.TestCase):
         plt.show()       
     
     
+    @unittest.skip('no')
+    def testRelativeCircles(self):
+        # Create the dataset
+        X, y = make_circles(n_samples=500, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
+        
+        # Successive executions of the clustering algorithm
+        no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X)
+        
+        # Plot the indices
+        plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI)
+        plt.show()      
     
+    
+    @unittest.skip('no')
+    def testRelativeMoons(self):
+        # Create the dataset
+        X, y = make_moons(n_samples=500, shuffle = True, noise = 0.01, random_state = 10)
+        
+        # Successive executions of the clustering algorithm
+        no_of_clusters_list, DI, DB, SI, GI = relative_criteria.relative_validity_hard(X)
+        
+        # Plot the indices
+        plot_relative_criteria_hard(no_of_clusters_list, DI, DB, SI, GI)
+        plt.show()     
     
     
                 
@@ -116,8 +137,7 @@ class Test(unittest.TestCase):
     
     @unittest.skip('no')
     def testRelativeImageSegmentation(self):
-        #image = ndimage.imread('..//..//..//..//spongebob.jpg')
-        image = ndimage.imread('..//..//..//..//sample2.jpg')
+        image = ndimage.imread('..//..//images//22090.jpg')
         
         # Successive executions of the clustering algorithm
         no_of_clusters_list, DB = relative_criteria.relative_validity_hard_large_data(image)
@@ -129,40 +149,24 @@ class Test(unittest.TestCase):
     
     #@unittest.skip('no')
     def testImageSegmentation(self):
-        #image = ndimage.imread('..//..//..//..//simpsons.jpg')
-        #image = ndimage.imread('..//..//..//..//test.png')
-        image = ndimage.imread('..//..//..//..//spongebob.jpg')
-        #image = ndimage.imread('..//..//..//..//sample2.jpg')
+        image = ndimage.imread('..//..//images//172032.jpg')
         
-        # We run BSAS first to get estimates for the centroids
+        # Algorithm execution. We run BSAS first to get estimates for the centroids
         clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(image)
-        X, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = 4, centroids_initial = centroids)
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = 10, centroids_initial = centroids)
         
-        # Builds an empty image numpy array with the same dimensions as our image
-        picture = np.empty(image.shape)
+        # Calculate the Rand Index to test similarity to external data
+        original_image = '172032.jpg'
+        seg_file = '172032.seg'
+        external_info = image_segm_utility.insert_clusters(original_image, seg_file)
+        rand_index = image_segm_utility.rand_index_calculation(X_, external_info)
+        print(rand_index)
         
-        
-        
-        clusters = np.unique(X[:, :, 3])
-        
-        
-        np.random.seed(14)
-        for i, cluster_ in enumerate(clusters):
-            x, y = np.where(X[:, :, 3] == cluster_)
-            random_color = np.random.randint(256, size = (1,3))
-            picture[x, y] = random_color
-            print(random_color)
-        
-        plt.imshow(picture)
+        # Draw the clustered image
+        draw_clustered_image(X_, image.shape)
         plt.show()
         
-        
-        
-        
-        
-        
-        
-        
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

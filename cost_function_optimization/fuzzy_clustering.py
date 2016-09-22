@@ -1,5 +1,5 @@
 import numpy as np
-import time
+from functools import reduce
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
@@ -23,12 +23,16 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     
     '''
     # Initializations
-    N = len(data)
+    initial_shape = list(data.shape)
+    N = reduce(lambda x, y: x * y, data.shape[:-1]) 
+    m = data.shape[-1] 
     partition_matrix = np.zeros((N, no_of_clusters))
-    no_of_features = len(data[0])
+    # Conversion to 2-D array
+    data = data.reshape(N, m)
+    
     # if the centroid are provided as parameter use them, otherwise create them
     if centroids_initial is None:
-        centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, no_of_features), replace = False)
+        centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, m), replace = False)
     else:
         centroids_old = centroids_initial
     centroids_new = np.zeros(centroids_old.shape) 
@@ -40,7 +44,7 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
 
     while condition and counter < 50:
         counter += 1
-        
+        print(counter)
         '''
         for i in range(N):
             # Precalculate euclidean distances for the current vector.
@@ -81,6 +85,9 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     # Assign each vector to a cluster taking the greatest u
     assigned_cluster = np.argmax(partition_matrix, axis = 1) 
     data = np.hstack((data, assigned_cluster.reshape(N, 1)))
+    
+    initial_shape[-1] += 1
+    data = data.reshape(initial_shape)
     
     return data, centroids_new, ita, centroids_history, partition_matrix
     

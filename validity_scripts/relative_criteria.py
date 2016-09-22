@@ -156,7 +156,11 @@ def relative_validity_hard(X):
             centroids = centroids_BSAS
         
         X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
-        print('lalaoeoeoe')
+        
+        
+        plot_data(X_, total_clusters, centroids, centroids_history)
+        plt.show()
+        
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
         SI[i] = silhouette_index(X_)
@@ -181,6 +185,12 @@ def relative_validity_fuzzy(X):
     # Initialization
     no_of_clusters_list = [i for i in range(2, 11)]
     values_of_q = [1.25, 1.5, 1.75]
+    
+    N = reduce(lambda x, y: x * y, X.shape[:-1]) 
+    m = X.shape[-1] 
+
+    # Conversion to 2-D array
+    X = X.reshape(N, m)
     
     # Initialize arrays to hold the indices. We use separate arrays for easier modification of the code if needed.
     # If we wanted to use one array then this would be a 3 - dimensional array.
@@ -222,8 +232,16 @@ def relative_validity_possibilistic(X):
         PC, PE, XB, FS : the arrays holding the values of the four indices
     '''
     # Initialization
-    no_of_clusters_list = [i for i in range(2, 11)]
-    values_of_q = [1.25, 1.5, 1.75]
+    #no_of_clusters_list = [i for i in range(2, 11)]
+    no_of_clusters_list = [13,16,20]
+    #values_of_q = [1.25, 1.5, 1.75]
+    values_of_q = [1.25]
+    
+    N = reduce(lambda x, y: x * y, X.shape[:-1]) 
+    m = X.shape[-1] 
+
+    # Conversion to 2-D array
+    X = X.reshape(N, m)
     
     # Initialize arrays to hold the indices. We use separate arrays for easier modification of the code if needed.
     # If we wanted to use one array then this would be a 3 - dimensional array.
@@ -381,7 +399,6 @@ def silhouette_index(X):
     # a: average_distance_in_same_cluster. Average distance only for the vectors belonging to the same clusters
     a = np.zeros((N))
     # Calculates the silhouettes of all clusters as the average silhouettes of their vectors
-    # Calculates a
     for i, cluster in enumerate(clusters):
         cluster_indices = np.where(X[:, m] == cluster)[0]
         # Number of vectors in the cluster
@@ -390,7 +407,7 @@ def silhouette_index(X):
             
         for j, vector_index in enumerate(cluster_indices):
             if n != 1:
-                a[vector_index] = np.sum(cluster_dissimmilarity_matrix[j, :], axis = 0)/(n - 1) #average
+                a[vector_index] = np.sum(cluster_dissimmilarity_matrix[j, :], axis = 0)/(n - 1) #average. not counting distance 0 to itself
             else:
                 a[vector_index] = np.sum(cluster_dissimmilarity_matrix[j, :], axis = 0)
     
@@ -409,7 +426,6 @@ def silhouette_index(X):
                 k = len(cluster_indices2)
                 different_cluster_dissimmilarity_matrix = dissimilarity_matrix[cluster_indices1.reshape(n, 1), cluster_indices2]
                 
-                # Here we divide with k instead of k - 1, because the same vector will never be at the same cluster
                 for j, vector_index in enumerate(cluster_indices1):
                     if b[vector_index] > np.average(different_cluster_dissimmilarity_matrix[j, :], axis = 0):
                         b[vector_index] = np.average(different_cluster_dissimmilarity_matrix[j, :], axis = 0)

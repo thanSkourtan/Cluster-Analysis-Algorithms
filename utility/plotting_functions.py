@@ -227,3 +227,31 @@ def plot_relative_criteria_sequential(no_of_clusters_list, DI, DB, SI):
     for subplot in subplots_list:
         subplot.set_xlabel('Parameter value')
         subplot.set_ylabel('Index value')
+
+
+
+
+def draw_clustered_image(X, shape_of_image):
+    ''' A utility function used to re-draw the clustered image by using one single colour for each cluster
+    '''
+    # Builds an empty image numpy array with the same dimensions as our image
+    picture = np.empty(shape_of_image)
+    
+    clusters = np.unique(X[:, :, 3])
+            
+    np.random.seed(14)
+    for i, cluster_ in enumerate(clusters):
+        x, y = np.where(X[:, :, 3] == cluster_)
+        random_color = np.random.randint(256, size = (1,3))
+        picture[x, y] = random_color
+        #print(random_color)
+        
+    plt.imshow(picture)
+
+
+
+
+
+
+
+

@@ -3,11 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from cost_function_optimization import fuzzy_clustering, possibilistic_clustering
 from validity_scripts import internal_criteria, external_criteria, relative_criteria
-from scipy.stats import norm
-from tqdm import tqdm
-from sys import maxsize as max_integer
 from utility.plotting_functions import *
 import unittest
+from scipy import ndimage
+from utility import image_segm_utility
 
 plt.style.use('ggplot')
 
@@ -53,7 +52,7 @@ class Test(unittest.TestCase):
         X, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(X, no_of_clusters, ita, centroids_initial = centroids)
         
         # Plotting
-        plot_data(X, centroids, no_of_clusters, centroids_history)
+        plot_data(X, no_of_clusters, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
@@ -77,7 +76,7 @@ class Test(unittest.TestCase):
         X, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(X, no_of_clusters, ita, centroids_initial = centroids)
         
         # Plotting
-        plot_data(X, centroids, no_of_clusters, centroids_history)
+        plot_data(X, no_of_clusters, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
@@ -110,14 +109,14 @@ class Test(unittest.TestCase):
         plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
         plt.show()        
     
-    '''
+    
     @unittest.skip('no')
     def testRelativeCircles(self):
         # Create the dataset
         X, y = make_circles(n_samples=500, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_fuzzy(X)
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_possibilistic(X)
         
         # Plot the indices
         plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
@@ -130,12 +129,49 @@ class Test(unittest.TestCase):
         X, y = make_moons(n_samples=500, shuffle = True, noise = 0.01, random_state = 10)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_fuzzy(X)
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_possibilistic(X)
         
         # Plot the indices
         plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
         plt.show()      
-    '''
+    
+    ################################################## Image Segmentation #########################
+    
+    
+    @unittest.skip('no')
+    def testRelativeImageSegmentation(self):
+        image = ndimage.imread('..//..//images//22090.jpg')
+        
+        # Successive executions of the clustering algorithm
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_possibilistic(image)
+        
+        # Plot the indices
+        plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
+        plt.show()  
+    
+    
+    #@unittest.skip('no')
+    def testImageSegmentation(self):
+        image = ndimage.imread('..//..//images//172032.jpg')
+        
+        # Algorithm execution.
+        clusters_number_to_execute = 10
+        #X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(image, clusters_number_to_execute)
+        X_, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(image, clusters_number_to_execute, ita, centroids_initial = centroids)
+  
+        # Calculate the Rand Index to test similarity to external data
+        original_image = '172032.jpg'
+        seg_file = '172032.seg'
+        external_info = image_segm_utility.insert_clusters(original_image, seg_file)
+        rand_index = image_segm_utility.rand_index_calculation(X_, external_info)
+        print(rand_index)
+        
+        # Draw the clustered image
+        draw_clustered_image(X_, image.shape)
+        plt.show()
+
+    
+    
     
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

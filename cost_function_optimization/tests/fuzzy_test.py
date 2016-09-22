@@ -2,11 +2,11 @@ from sklearn.datasets import *
 import numpy as np
 from cost_function_optimization import fuzzy_clustering
 from validity_scripts import internal_criteria, external_criteria, relative_criteria
-from scipy.stats import norm
-from tqdm import tqdm
-from sys import maxsize as max_integer
 from utility.plotting_functions import *
 import matplotlib.pyplot as plt
+from scipy import  ndimage
+from utility import image_segm_utility
+
 
 import unittest
 
@@ -88,7 +88,7 @@ class Test(unittest.TestCase):
     
     ######################### Relative Criteria Clustering #########################
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testRelativeBlobs(self):
         no_of_clusters= 4
         
@@ -129,8 +129,40 @@ class Test(unittest.TestCase):
         plt.show()      
     
     
+                    
+    ################################################## Image Segmentation #########################
     
-      
+    
+    @unittest.skip('no')
+    def testRelativeImageSegmentation(self):
+        image = ndimage.imread('..//..//images//113044.jpg')
+        
+        # Successive executions of the clustering algorithm
+        no_of_clusters_list, values_of_q, PC, PE, XB, FS = relative_criteria.relative_validity_fuzzy(image)
+        
+        # Plot the indices
+        plot_relative_criteria_fuzzy(no_of_clusters_list, values_of_q, PC, PE, XB, FS)
+        plt.show()  
+    
+    
+    #@unittest.skip('no')
+    def testImageSegmentation(self):
+        image = ndimage.imread('..//..//images//172032.jpg')
+        
+        # Algorithm execution.
+        clusters_number_to_execute = 10
+        X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(image, no_of_clusters = clusters_number_to_execute)
+        
+        # Calculate the Rand Index to test similarity to external data
+        original_image = '172032.jpg'
+        seg_file = '172032.seg'
+        external_info = image_segm_utility.insert_clusters(original_image, seg_file)
+        rand_index = image_segm_utility.rand_index_calculation(X_, external_info)
+        print(rand_index)
+        
+        # Draw the clustered image
+        draw_clustered_image(X_, image.shape)
+        plt.show()
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

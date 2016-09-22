@@ -29,6 +29,7 @@ def external_indices(data, external_data_info):
     
     N= len(data)
     m = len(data[0])
+    
     P = np.zeros((N, N))
     X = np.zeros((N, N))
     Y = np.zeros((N, N))
