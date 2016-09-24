@@ -76,14 +76,15 @@ def basic_sequential_scheme(data, max_number_of_clusters = 10, threshold = max_i
         nearest_cluster_distance = np.min(distance_from_centroids)
         nearest_cluster = np.argmin(distance_from_centroids)
         clustered_data[i, m] = nearest_cluster
-        
+    
+    
     final_clusters = np.unique(clustered_data[:, m])
     for j in final_clusters:
         # Update Centroids
         indices_of_current_centroid = np.where(clustered_data[:, m] == j)[0]
         centroids[j] = np.mean(data[indices_of_current_centroid, :], axis = 0)
 
-    # Return data matrix back to its original dimensions taking under consideration the one extra colum for the cluster id
+    # Return data matrix back to its original dimensions taking under consideration the one extra column for the cluster id
     initial_shape[-1] += 1
     clustered_data = clustered_data.reshape(initial_shape)
 
@@ -117,7 +118,6 @@ def thresholding_BSAS(data):
         
         for i, point in enumerate(summary_array):
             dissimilarity_matrix[:, [i]] = euclidean_distance(summary_array[:, :m],point[:m])
-            
         distances = np.zeros((n * (n - 1)/2)) #number of pairs
     
     else:

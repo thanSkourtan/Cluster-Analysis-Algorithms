@@ -3,6 +3,9 @@ from scipy import ndimage
 import os, inspect
 from tqdm import tqdm
 from functools import reduce
+from sys import maxsize as max_integer
+import matplotlib.pyplot as plt
+from utility.plotting_functions import *
 
 '''
 Module of utility functions set to work with the image repository of 
@@ -61,4 +64,116 @@ def rand_index_calculation(X_, external_info):
     rand_index = nominator/(random_size*(random_size-1)/2)
     return rand_index
         
+
+
+
+
+
+
+def merging_procedure(image, threshold):
+    
+
+    N = image.shape[0]
+    m = image.shape[1]
+    visited = np.zeros((N, m))
+    
+    no_of_clusters = len(np.unique(image[:,:,3]))
+    
+
+    for index in tqdm(np.ndindex(N, m)):
         
+        if(visited[index[0], index[1]] == 0):
+            dominant_cluster_list = np.zeros(no_of_clusters + 1) # Plus one in case some algorithm starts numbering the clusters fron 1 instead of zero
+            counter = 1
+            visited[index[0], index[1]] = 3 
+            counter, dominant_cluster_list = _dfs_util(image, index[0], index[1], N, m, visited, image[index[0], index[1], 3], counter, dominant_cluster_list, threshold)
+            # Reset visited array
+            indices_of_dominant_clusters = np.where(visited==2)
+            visited[indices_of_dominant_clusters[0], indices_of_dominant_clusters[1]] = 0
+            
+            indices_of_previously_visited = np.where(visited == 3)
+            visited[indices_of_previously_visited[0], indices_of_previously_visited[1]] = 1
+            
+            if counter < threshold:
+                dom_cluster = np.argmax(dominant_cluster_list)
+                
+                # Change all pixels of previous island to the dominant cluster
+                image[indices_of_previously_visited[0], indices_of_previously_visited[1], 3] = dom_cluster
+                #draw_clustered_image(image, (321, 481, 3), 5)
+             
+        
+        
+    return image
+
+
+def _moves(y, x):
+    moves = [(0,1), (1,0), (1,1), (-1, -1), (-1, 0),(-1, 1),(0,-1),(1,-1) ]
+    list_of_new_positions = []
+    for move in moves:
+        list_of_new_positions.append((y + move[0], x + move[1]))    
+    return list_of_new_positions
+
+def _constraints(y, x, N, m): 
+    if y >= N or x >= m:
+        return False 
+    elif y < 0 or x < 0:
+        return False
+    else:
+        return True
+
+def _dfs_util(image, y, x, N, m, visited, pixels_cluster, counter, dominant_cluster_list, threshold):
+    
+    if counter > threshold:
+        return max_integer, []
+    
+    for move in _moves(y, x):
+        y = move[0]
+        x = move[1]
+        if _constraints(y,x, N, m) == True:
+            #print('y', y)
+            #print('x', x)
+            if visited[y, x] == 0 or visited[y, x] == 2:
+                if image[y, x, 3] == pixels_cluster:
+                    visited[y, x] = 3
+                    counter += 1
+                    counter, dominant_cluster_list = _dfs_util(image, y, x, N, m, visited, image[y, x, 3], counter, dominant_cluster_list, threshold)
+                    if counter == max_integer:
+                        return counter, dominant_cluster_list
+                else:
+                    if visited[y, x] != 2:
+                        #print('boundary y ', y)
+                        #print('boundary x ', x)
+                        visited[y, x] = 2 # 2 means not visited by used for . it's a workaround in order not to use another array
+                        dominant_cluster_list[image[y, x, 3]] += 1
+            else: # when we reach here, the pixel is external. External means boundary to other cluster not the image limits
+                if visited[y, x] != 2 and visited[y, x] != 3:
+                    #print('boundary y ', y)
+                    #print('boundary x ', x)
+                    visited[y, x] = 2 # 2 means not visited by used for . it's a workaround in order not to use another array
+                    dominant_cluster_list[image[y, x, 3]] += 1
+    return counter, dominant_cluster_list
+                
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

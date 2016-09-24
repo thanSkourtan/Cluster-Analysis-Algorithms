@@ -137,7 +137,7 @@ class Test(unittest.TestCase):
     
     @unittest.skip('no')
     def testRelativeImageSegmentation(self):
-        image = ndimage.imread('..//..//images//22090.jpg')
+        image = ndimage.imread('..//..//images//118020.jpg')
         
         # Successive executions of the clustering algorithm
         no_of_clusters_list, DB = relative_criteria.relative_validity_hard_large_data(image)
@@ -149,27 +149,49 @@ class Test(unittest.TestCase):
     
     #@unittest.skip('no')
     def testImageSegmentation(self):
-        image = ndimage.imread('..//..//images//172032.jpg')
+        image = ndimage.imread('..//..//images//231015.jpg')
+        image = image.astype(np.int32, copy = False)
         
         # Algorithm execution. We run BSAS first to get estimates for the centroids
+        number_of_clusters = 25
         clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(image)
-        X_, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = 10, centroids_initial = centroids)
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = number_of_clusters, centroids_initial = centroids)
+        
+        # Draw the clustered image
+        draw_clustered_image(X_, image.shape, 5)
+        plt.show()
+
+        
+        ###################################################################
+        # Merging procedure
+        X_  = image_segm_utility.merging_procedure(X_, 500)
         
         # Calculate the Rand Index to test similarity to external data
-        original_image = '172032.jpg'
-        seg_file = '172032.seg'
+        original_image = '231015.jpg'
+        seg_file = '231015.seg'
         external_info = image_segm_utility.insert_clusters(original_image, seg_file)
         rand_index = image_segm_utility.rand_index_calculation(X_, external_info)
         print(rand_index)
         
         # Draw the clustered image
-        draw_clustered_image(X_, image.shape)
+        draw_clustered_image(X_, image.shape, rand_index)
         plt.show()
+
+    @unittest.skip('no')
+    def testTobeErased(self):
+        image = ndimage.imread('..//..//images//231015.jpg')
+        image = image.astype(np.int32, copy = False)
+        number_of_clusters = 2
+        X_, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = number_of_clusters)
         
+        X_  = image_segm_utility.merging_procedure(X_)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
+    
+    
+    
     
     
     

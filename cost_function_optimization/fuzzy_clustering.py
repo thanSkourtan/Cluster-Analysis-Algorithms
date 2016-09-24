@@ -30,11 +30,21 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
     # Conversion to 2-D array
     data = data.reshape(N, m)
     
-    # if the centroid are provided as parameter use them, otherwise create them
     if centroids_initial is None:
         centroids_old = np.random.choice(np.arange(np.min(data), np.max(data), 0.1), size = (no_of_clusters, m), replace = False)
     else:
-        centroids_old = centroids_initial
+        if len(centroids_initial) < no_of_clusters:
+            centroids_old = np.zeros((no_of_clusters, m))
+            # First centroids values
+            centroids_old[:len(centroids_initial),:] = centroids_initial # first centroids are initialized through centroid_initialization values
+            # Last centroids values
+            random_indices = np.random.randint(N,size = no_of_clusters - len(centroids_initial))
+            centroids_old[len(centroids_initial):,:] = data[random_indices, :]
+        elif len(centroids_initial) > no_of_clusters:
+            centroids_old = centroids_initial[:no_of_clusters, :]
+        elif len(centroids_initial) == no_of_clusters:
+            centroids_old = centroids_initial
+        
     centroids_new = np.zeros(centroids_old.shape) 
     centroids_history = np.copy(centroids_old) # this array stacks the old positions of the centroids
     
@@ -59,6 +69,8 @@ def fuzzy(data, no_of_clusters, centroids_initial = None, q = 1.25):
         for i in range(no_of_clusters):
             #precalculate euclidean distances for the instance. instance is the point, centroids are the data
             distance_matrix[:, [i]] = euclidean_distance(data, centroids_old[i, :])
+            # In the rare case where a point is at the same place as the centroids and the distance is 0, make it 0.0001
+            distance_matrix[np.where(distance_matrix[:, [i]] == 0)[0], [i]] = 0.0001
         for i in range(no_of_clusters):   
             partition_matrix[:, [i]] = 1 / np.sum(np.power((1./distance_matrix) * distance_matrix[:, [i]], (1/(q-1))), axis = 1).reshape(N, 1)
 

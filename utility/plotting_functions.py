@@ -231,7 +231,7 @@ def plot_relative_criteria_sequential(no_of_clusters_list, DI, DB, SI):
 
 
 
-def draw_clustered_image(X, shape_of_image):
+def draw_clustered_image(X, shape_of_image, rand_index):
     ''' A utility function used to re-draw the clustered image by using one single colour for each cluster
     '''
     # Builds an empty image numpy array with the same dimensions as our image
@@ -245,7 +245,11 @@ def draw_clustered_image(X, shape_of_image):
         random_color = np.random.randint(256, size = (1,3))
         picture[x, y] = random_color
         #print(random_color)
-        
+    
+    title = 'Number of clusters: ', len(clusters), ' rand:', rand_index
+    plt.title(title)
+    plt.grid(False)
+    
     plt.imshow(picture)
 
 

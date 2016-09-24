@@ -7,6 +7,8 @@ from scipy.stats import norm
 from tqdm import tqdm
 from sys import maxsize as max_integer
 from utility.plotting_functions import *
+from scipy import ndimage
+from utility import image_segm_utility
 
 import unittest
 
@@ -15,7 +17,7 @@ plt.style.use('ggplot')
 class Test(unittest.TestCase):
 
 
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 4
         
@@ -125,7 +127,24 @@ class Test(unittest.TestCase):
                 
                 
                 
-
+    #@unittest.skip('no')
+    def testImageSegmentation(self):
+        image = ndimage.imread('..//..//images//113044.jpg')
+        image = image.astype(np.int32, copy = False)
+        
+        # Algorithm execution. We run BSAS first to get estimates for the centroids
+        X_, centroids, total_clusters = BSAS.basic_sequential_scheme(image, max_number_of_clusters = 1000, threshold = 185)
+        
+        # Calculate the Rand Index to test similarity to external data
+        original_image = '113044.jpg'
+        seg_file = '113044.seg'
+        external_info = image_segm_utility.insert_clusters(original_image, seg_file)
+        rand_index = image_segm_utility.rand_index_calculation(X_, external_info)
+        print(rand_index)
+        
+        # Draw the clustered image
+        draw_clustered_image(X_, image.shape, total_clusters, rand_index)
+        plt.show()
 
 
 
