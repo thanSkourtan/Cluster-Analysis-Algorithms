@@ -151,18 +151,21 @@ class Test(unittest.TestCase):
         plt.show()  
     
     
-    @unittest.skip('no')
+    #@unittest.skip('no')
     def testImageSegmentation(self):
         image = ndimage.imread('..//..//images//181091.jpg')
         image = image.astype(np.int32, copy = False)
         
         # Algorithm execution.
-        clusters_number_to_execute = 5
+        clusters_number_to_execute = 28
         clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(image)
         X_, centroids, ita, centroids_history, partition_matrix = fuzzy_clustering.fuzzy(image, clusters_number_to_execute, centroids_initial = centroids)
         X_, centroids, centroids_history, typicality_matrix = possibilistic_clustering.possibilistic(image, clusters_number_to_execute, ita, centroids_initial = centroids)
         
-        X_  = image_segm_utility.merging_procedure(X_, 50)
+        ###################################################################
+        # Merging procedure
+        
+        X_  = image_segm_utility.merging_procedure(X_, 500)
           
         # Calculate the Rand Index to test similarity to external data
         original_image = '181091.jpg'
@@ -176,11 +179,11 @@ class Test(unittest.TestCase):
         draw_clustered_image(X_, image.shape, rand_index)
         plt.show()
 
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testToBeErased(self):
-        image = ndimage.imread('..//..//images//113044.jpg')
-        original_image = '113044.jpg'
-        seg_file = '113044.seg'
+        image = ndimage.imread('..//..//images//181091.jpg')
+        original_image = '181091.jpg'
+        seg_file = '181091.seg'
         external_info = image_segm_utility.insert_clusters(original_image, seg_file)
         #rand_index = image_segm_utility.rand_index_calculation(external_info, external_info)
         

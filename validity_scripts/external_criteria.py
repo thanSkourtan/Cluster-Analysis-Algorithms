@@ -6,6 +6,7 @@ from tqdm import tqdm
 from graph_theory import *
 
 
+
 def external_indices(data, external_data_info):
     '''Calculates three indices (rand statistic, jaccard coefficient, Fowlkes and Mallows) based on a matrix P
        that shows the simmilarity between the clustering under consideration and an external clustering. Also

@@ -149,26 +149,22 @@ class Test(unittest.TestCase):
     
     #@unittest.skip('no')
     def testImageSegmentation(self):
-        image = ndimage.imread('..//..//images//231015.jpg')
+        image = ndimage.imread('..//..//images//181091.jpg')
         image = image.astype(np.int32, copy = False)
         
         # Algorithm execution. We run BSAS first to get estimates for the centroids
-        number_of_clusters = 25
+        number_of_clusters = 28
         clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(image)
         X_, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = number_of_clusters, centroids_initial = centroids)
-        
-        # Draw the clustered image
-        draw_clustered_image(X_, image.shape, 5)
-        plt.show()
 
-        
         ###################################################################
         # Merging procedure
+        
         X_  = image_segm_utility.merging_procedure(X_, 500)
         
         # Calculate the Rand Index to test similarity to external data
-        original_image = '231015.jpg'
-        seg_file = '231015.seg'
+        original_image = '181091.jpg'
+        seg_file = '181091.seg'
         external_info = image_segm_utility.insert_clusters(original_image, seg_file)
         rand_index = image_segm_utility.rand_index_calculation(X_, external_info)
         print(rand_index)

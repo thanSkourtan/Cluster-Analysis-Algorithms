@@ -16,12 +16,12 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 4
         
         # Create the dataset
-        X, y = make_blobs(n_samples = 500, centers= no_of_clusters, n_features=2,random_state=351)
+        X, y = make_blobs(n_samples = 500, centers= no_of_clusters, n_features=2,random_state=352)
         
         # Run the clustering algorithm but first run a sequential algorithm to obtain initial centroids
         X, no_of_clusters  = MST_Eld_Heg_Var.minimum_spanning_tree_variation(X)
@@ -42,14 +42,14 @@ class Test(unittest.TestCase):
     @unittest.skip("no")
     def testCircles(self):
         # Create the dataset
-        X, y = make_circles(n_samples=500, shuffle = True, noise = 0.05, factor = 0.5, random_state = 107)
+        X, y = make_circles(n_samples=500, shuffle = True, noise = 0.07, factor = 0.27, random_state = 107)
         
         # Run the clustering algorithm
         X, no_of_clusters = MST_Eld_Heg_Var.minimum_spanning_tree_variation(X)
         
         # Plotting
         plot_data(X, no_of_clusters)
-        '''
+        
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, MST_Eld_Heg_Var.minimum_spanning_tree_variation)
         initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y, MST_Eld_Heg_Var.minimum_spanning_tree_variation)
@@ -57,15 +57,15 @@ class Test(unittest.TestCase):
         # Histogram of gammas from internal and external criteria 
         hist_internal_criteria(initial_gamma, list_of_gammas, result)
         hist_external_criteria(initial_indices, list_of_indices, result_list)
-        '''
+        
         plt.show()
         
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testMoons(self):
         no_of_clusters = 2
         
         # Create the dataset
-        X, y = make_moons(n_samples=300, shuffle = True, noise = 0.07, random_state = 10)
+        X, y = make_moons(n_samples=300, shuffle = True, noise = 0.05, random_state = 118)
         
         # Run the clustering algorithm
         X, no_of_clusters  = MST_Eld_Heg_Var.minimum_spanning_tree_variation(X)

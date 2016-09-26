@@ -4,6 +4,7 @@ from sklearn.datasets import *
 from sys import maxsize as max_integer
 from scipy.spatial import Delaunay
 
+
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 
