@@ -253,6 +253,35 @@ def draw_clustered_image(X, shape_of_image, rand_index):
     plt.imshow(picture)
 
 
+def plot_relative_criteria_TTSS(no_of_threshold_values1, no_of_threshold_values2, DI, DB, SI):
+    
+    # row and column sharing
+    figure, ((ax1, ax2, ax3)) = plt.subplots(3, 1, figsize = (12,9))
+    
+    subplots_list = (ax1, ax2, ax3)
+    
+    # Plot DI
+    for j, t2 in enumerate(no_of_threshold_values2):
+        ax1.plot(no_of_threshold_values1, DI[:, j], label = t2)
+        
+    # Plot DB
+    for j, t2 in enumerate(no_of_threshold_values2):
+        ax2.plot(no_of_threshold_values1, DB[:, j], label = t2)
+        
+    # Plot SI
+    for j, t2 in enumerate(no_of_threshold_values2):
+        ax3.plot(no_of_threshold_values1, SI[:, j], label = t2)
+    
+    ax1.set_title('Dunn Index(maximum)')
+    ax2.set_title('Davies - Bouldin(minimum)')
+    ax3.set_title('Silhouette Index(maximum)')
+
+    figure.canvas.set_window_title('Relative Indices')
+    
+    for subplot in subplots_list:
+        subplot.set_xlabel('Parameter value')
+        subplot.set_ylabel('Index value')
+        subplot.legend(title = 'Threshold2 values',framealpha= 0.7)
 
 
 

@@ -84,7 +84,7 @@ class Test(unittest.TestCase):
 
 ################################################## Relative Criteria Clustering #########################
     
-    @unittest.skip('no')
+    #@unittest.skip('no')
     def testRelativeBlobs(self):
         no_of_clusters= 4
         

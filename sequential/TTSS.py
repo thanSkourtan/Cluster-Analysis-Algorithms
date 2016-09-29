@@ -1,10 +1,12 @@
 import numpy as np
 from scipy.signal import argrelextrema
 import matplotlib.pyplot as plt
+from functools import reduce
+from sys import maxsize as max_integer
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
-def two_threshold_sequential_scheme(data):
+def two_threshold_sequential_scheme(data, threshold1 = max_integer, threshold2 = max_integer):
     ''' An implementation of the two threshold sequential scheme clustering algorithm.
     
     Parameters:
@@ -16,10 +18,24 @@ def two_threshold_sequential_scheme(data):
         no_of_clusters(integer): the final number of clusters created
     
     '''
-    N = len(data)
+    # Initializations
+    initial_shape = list(data.shape)
+    N = reduce(lambda x, y: x * y, data.shape[:-1]) 
+    m = data.shape[-1] 
+    
+    # No matter what is the dimensions of the input data array, we convert it to 2-D array, we implement the algorithm and then we turn it back to its
+    # original dimensions 
+    data = data.reshape(N, m)
     
     # Automatically calculating threshold by peaks and valleys technique
-    threshold1, threshold2 = thresholding_TTSS(data)
+    if threshold1 == max_integer:
+        threshold1, threshold2, _ = thresholding_TTSS(data)
+    print('threshold value 1: ', threshold1)
+    print('threshold value 2: ', threshold2)
+    
+    # If it remained max_integer
+    if threshold1 == max_integer: # in the rare case when it fails to find thresholds, if there aren't three peaks
+        return None, 0, 0
     
     # Creating an array to keep track of the vectors that have been processed and assigned to a cluster
     processed = np.zeros((N))
@@ -70,6 +86,11 @@ def two_threshold_sequential_scheme(data):
             centroids = np.concatenate((centroids, [data[current_vector]]), axis = 0)
             processed[current_vector] = 1
             
+            
+    # Return data matrix back to its original dimensions taking under consideration the one extra column for the cluster id
+    initial_shape[-1] += 1
+    clustered_data = clustered_data.reshape(initial_shape)
+    
     return clustered_data, centroids, cluster_index + 1
 
 
@@ -89,11 +110,30 @@ def thresholding_TTSS(data):
     '''
     # Construct the dissimilarity matrix
     N = len(data)
-    dissimilarity_matrix = np.empty((N, 0)) 
-    for point in data:
-        dissimilarity_matrix = np.concatenate((dissimilarity_matrix, euclidean_distance(data,point)), axis=1)
+    m = len(data[0])
     
-    distances = np.zeros((N * (N - 1)/2)) #number of pairs
+    # If the dataset is less than 5000 vectors, calculate the threshold on the whole dataset. Otherwise,
+    # calculate it only on the 1% of it.
+    if N > 5000:
+        uniformingly_random_data = np.random.randint(N, size = (int(N/100)))
+        n = len(uniformingly_random_data)
+        
+        dissimilarity_matrix = np.empty((n, n)) 
+        summary_array = data[uniformingly_random_data]
+        
+        for i, point in enumerate(summary_array):
+            dissimilarity_matrix[:, [i]] = euclidean_distance(summary_array[:, :m],point[:m])
+        distances = np.zeros((n * (n - 1)/2)) #number of pairs
+    
+    else:
+        dissimilarity_matrix = np.empty((N, N)) 
+        for i, point in enumerate(data):
+            dissimilarity_matrix[:, [i]] =  euclidean_distance(data[:, :m],point[:m])
+        
+        distances = np.zeros((N * (N - 1)/2)) #number of pairs
+    
+    
+    
     
     k = 0
     for i, row in enumerate(dissimilarity_matrix):
@@ -111,19 +151,25 @@ def thresholding_TTSS(data):
     three_largest_peaks = sorted_list_of_peaks_indices[-3:]
     temp = sorted(three_largest_peaks)
     
-    # The first if statement applies to monte carlo simulations where the data do not have structure, 
-    # so there might be only one peak
+       
+    '''
     if len(temp) == 1:#if there is only one peak
         two_deepest_valley_bin = (temp[0], temp[0] + 0.01) # in this rare case that takes place only in monte carlo simulations put these values
     elif len(temp) == 2:
         two_deepest_valley_bin = (temp[0], temp[1])
     else:
         two_deepest_valley_bin = argrelextrema(n[temp[0]:temp[2] + 1], np.less_equal)[0] + temp[0]
-
+    '''
+    
+    # If we were not able to find two peaks exit and let the calling functions decide what to do
+    if len(temp) < 3:
+        return max_integer, max_integer, max_integer
+    
+    two_deepest_valley_bin = argrelextrema(n[temp[0]:temp[2] + 1], np.less_equal)[0] + temp[0]
     deepest_valley1 = bins[two_deepest_valley_bin[0]]
     deepest_valley2 = bins[two_deepest_valley_bin[1]]
 
-    return deepest_valley1, deepest_valley2
+    return deepest_valley1, deepest_valley2, bins
 
 
 

@@ -4,7 +4,7 @@ from cost_function_optimization import fuzzy_clustering, possibilistic_clusterin
 from sys import maxsize as max_integer
 import matplotlib.pyplot as plt
 from utility.plotting_functions import *
-from sequential import BSAS
+from sequential import BSAS, TTSS
 from graph_theory import MST
 from functools import reduce
 
@@ -28,11 +28,12 @@ def relative_validity_hard_sequential(X):
     threshold, bins = BSAS.thresholding_BSAS(X)
     threshold_index = np.where(bins == threshold)[0][0]
     
+    # Finds the threshold values against which to run the BSAS algorithm
     number_of_threshold_values = 10
     if threshold_index >= number_of_threshold_values:
         no_of_threshold_values = [bins[i] for i in range(threshold_index - number_of_threshold_values, threshold_index + number_of_threshold_values)]
     else:
-        no_of_threshold_values = threshold_index 
+        number_of_threshold_values = threshold_index 
         no_of_threshold_values = [bins[i] for i in range(threshold_index - number_of_threshold_values, threshold_index + number_of_threshold_values)]
     
     #no_of_clusters_list = [i for i in range(2, 11)]
@@ -48,14 +49,73 @@ def relative_validity_hard_sequential(X):
         
         
         DI[i] = Dunn_index(X_)
-
-        print('t:', threshold_values)
-
         DB[i] = Davies_Bouldin(X_, centroids_BSAS)
         SI[i] = silhouette_index(X_)
 
     
     return no_of_threshold_values, DI, DB, SI
+
+
+
+
+
+def relative_validity_TTSS(X):
+    # Initialization
+    threshold1_value, threshold2_value, bins = TTSS.thresholding_TTSS(X)
+    threshold_index1 = np.where(bins == threshold1_value)[0][0]
+    threshold_index2 = np.where(bins == threshold2_value)[0][0]
+    
+    # Finds the threshold values against which to run the BSAS algorithm
+    range_of_threshold_values = 20
+    if threshold_index1 >= range_of_threshold_values:
+        no_of_threshold_values1 = [bins[i] for i in range(threshold_index1 - range_of_threshold_values, threshold_index1 + range_of_threshold_values)]
+    else:
+        range_of_threshold_values = threshold_index1 - 1
+        no_of_threshold_values1 = [bins[i] for i in range(threshold_index1 - range_of_threshold_values, threshold_index1 + range_of_threshold_values)]
+    
+    range_of_threshold_values = 20
+    if threshold_index2 >= range_of_threshold_values:
+        no_of_threshold_values2 = [bins[i] for i in range(threshold_index2 - range_of_threshold_values, threshold_index2 + range_of_threshold_values)]
+    else:
+        range_of_threshold_values = threshold_index1 - 1
+        no_of_threshold_values2 = [bins[i] for i in range(threshold_index2 - range_of_threshold_values, threshold_index2 + range_of_threshold_values)]
+    
+    
+    N = reduce(lambda x, y: x * y, X.shape[:-1]) 
+    m = X.shape[-1] 
+
+    # Conversion to 2-D array
+    X = X.reshape(N, m)
+    
+    # Initialize arrays to hold the indices. We use separate arrays for easier modification of the code if needed.
+    # If we wanted to use one array then this would be a 3 - dimensional array.
+    DI = np.zeros((len(no_of_threshold_values1), len(no_of_threshold_values2)))
+    DB = np.zeros((len(no_of_threshold_values1), len(no_of_threshold_values2)))
+    SI = np.zeros((len(no_of_threshold_values1), len(no_of_threshold_values2)))
+    
+    for i, threshold_v1 in tqdm(enumerate(no_of_threshold_values1)): # no_of_clusters
+        for j, threshold_v2 in enumerate(no_of_threshold_values2): 
+            
+            if threshold_v2 <= threshold_v1:
+                DI[i, j] = np.nan
+                DB[i, j] = np.nan
+                SI[i, j] = np.nan
+            else:
+                # When X returns it has one more column that needs to be erased
+                X_, centroids, no_of_clusters = TTSS.two_threshold_sequential_scheme(X, threshold1 = threshold_v1, threshold2 = threshold_v2)
+                
+                #plot_data(X_, no_of_clusters, centroids)
+                
+                #plt.show()
+                
+                # Calculate indices
+                DI[i, j] = Dunn_index(X_)
+                DB[i, j] = Davies_Bouldin(X_, centroids)
+                SI[i, j] = silhouette_index(X_)
+            
+    return no_of_threshold_values1, no_of_threshold_values2, DI, DB, SI
+
+
 
 
 def relative_validity_hard_graph(X):
@@ -293,7 +353,7 @@ def Dunn_index(X):
     N = len(X)
     m = len(X[0]) - 1
     clusters = np.unique(X[:, m])
-    if len(clusters) <= 1: return 0
+    if len(clusters) <= 1: return np.nan #TODO: change with np.nan
 
     min_cluster_distance = max_integer
     max_cluster_diameter = -max_integer - 1
@@ -347,7 +407,7 @@ def Davies_Bouldin(X, centroids):
     X = X.reshape(N, m)
     
     clusters = np.unique(X[:, m - 1])
-    if len(clusters) <= 1: return 1
+    if len(clusters) <= 1: return np.nan #TODO: change with np.nan
     
     no_of_clusters = len(clusters)
     # Casting the clusters array to int as we are going to use it later for indexing
@@ -389,7 +449,7 @@ def silhouette_index(X):
     N= len(X)
     m = len(X[0]) - 1
     clusters = np.unique(X[:, m])
-    if len(clusters) <= 1: return -1
+    if len(clusters) <= 1: return np.nan #TODO: change with np.nan
     # Construct the dissimilarity matrix
     dissimilarity_matrix = np.empty((N, N)) 
     for j, point in enumerate(X):
