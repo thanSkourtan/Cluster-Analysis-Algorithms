@@ -89,6 +89,8 @@ def monte_carlo(data, no_of_clusters, algorithm):
                 continue # Being able to rerun this loop is the reason we use a while instead of a for loop
         elif algorithm == TTSS.two_threshold_sequential_scheme:
             X, centroids, no_of_clusters = algorithm(random_data)
+            if (X is None):
+                continue
         elif algorithm == MST.minimum_spanning_tree:
             X, no_of_clusters = algorithm(random_data)
         elif algorithm == MST_Eld_Heg_Var.minimum_spanning_tree_variation:

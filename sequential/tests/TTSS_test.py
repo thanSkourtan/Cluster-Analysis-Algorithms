@@ -22,11 +22,11 @@ class Test(unittest.TestCase):
         X, y = make_blobs(n_samples = 500, centers= no_of_clusters, n_features=2,random_state=10)
         
         # Run the clustering algorithm
-        X, centroids, no_of_clusters = TTSS.two_threshold_sequential_scheme(X, threshold1 = 4.3, threshold2 = 10.18)
+        X, centroids, no_of_clusters = TTSS.two_threshold_sequential_scheme(X, threshold1 = 5.82, threshold2 = 6.79)
 
         # Plotting
         plot_data(X, no_of_clusters, centroids)
-        '''
+        
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, TTSS.two_threshold_sequential_scheme)
         initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y, TTSS.two_threshold_sequential_scheme)
@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
         # Histogram of gammas from internal criteria 
         hist_internal_criteria(initial_gamma, list_of_gammas, result)
         hist_external_criteria(initial_indices, list_of_indices, result_list)
-        '''
+        
         plt.show()
         
     
@@ -46,7 +46,7 @@ class Test(unittest.TestCase):
         X, y = make_circles(n_samples=300, shuffle = True, noise = 0.05, factor = 0.5, random_state = 10)
         
         # Run the clustering Algorithm
-        X, centroids, no_of_clusters = TTSS.two_threshold_sequential_scheme(X)
+        X, centroids, no_of_clusters = TTSS.two_threshold_sequential_scheme(X,threshold1 = 0.17, threshold2 = 0.53)
         
         # Plotting
         plot_data(X, no_of_clusters, centroids)
@@ -61,7 +61,7 @@ class Test(unittest.TestCase):
         
         plt.show()
         
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testMoons(self):
         no_of_clusters = 2
         
@@ -72,7 +72,7 @@ class Test(unittest.TestCase):
         X, centroids, no_of_clusters = TTSS.two_threshold_sequential_scheme(X)
         
         # Plotting
-        plot_data(X, centroids, no_of_clusters)
+        plot_data(X, no_of_clusters, centroids)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, TTSS.two_threshold_sequential_scheme)
@@ -87,7 +87,7 @@ class Test(unittest.TestCase):
 
     ######################### Relative Criteria Clustering #########################
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testRelativeBlobs(self):
         no_of_clusters= 8
         
@@ -108,10 +108,10 @@ class Test(unittest.TestCase):
         X, y = make_circles(n_samples=500, shuffle = True, noise = 0.05, factor = 0.5, random_state = 121)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, DI, DB, SI= relative_criteria.relative_validity_hard_sequential(X)
+        no_of_threshold_values1, no_of_threshold_values2, DI, DB, SI= relative_criteria.relative_validity_TTSS(X)
 
         # Plot the indices
-        plot_relative_criteria_sequential(no_of_clusters_list, DI, DB, SI)
+        plot_relative_criteria_TTSS(no_of_threshold_values1, no_of_threshold_values2, DI, DB, SI)
         plt.show()     
     
     
@@ -122,10 +122,10 @@ class Test(unittest.TestCase):
         X, y = make_moons(n_samples=500, shuffle = True, noise = 0.07, random_state = 121)
         
         # Successive executions of the clustering algorithm
-        no_of_clusters_list, DI, DB, SI = relative_criteria.relative_validity_hard_sequential(X)
+        no_of_threshold_values1, no_of_threshold_values2, DI, DB, SI= relative_criteria.relative_validity_TTSS(X)
 
         # Plot the indices
-        plot_relative_criteria_sequential(no_of_clusters_list, DI, DB, SI)
+        plot_relative_criteria_TTSS(no_of_threshold_values1, no_of_threshold_values2, DI, DB, SI)
         plt.show()  
     
 
