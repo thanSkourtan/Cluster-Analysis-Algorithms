@@ -17,7 +17,7 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 4
         
@@ -26,10 +26,10 @@ class Test(unittest.TestCase):
         
         # Run the clustering algorithm but first run a sequential algorithm to obtain initial centroids
         clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(X)
-        X, centroids, centroids_history = kmeans_clustering.kmeans(X, 5, centroids_initial = centroids)
+        X, centroids, centroids_history = kmeans_clustering.kmeans(X, no_of_clusters, centroids_initial = centroids)
 
         # Plotting
-        plot_data(X, 5, centroids, centroids_history)
+        plot_data(X, no_of_clusters, centroids, centroids_history)
         
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, kmeans_clustering.kmeans)
@@ -147,7 +147,7 @@ class Test(unittest.TestCase):
         plt.show()
     
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testImageSegmentation(self):
         image = ndimage.imread('..//..//images//181091.jpg')
         image = image.astype(np.int32, copy = False)

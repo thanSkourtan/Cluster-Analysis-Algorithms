@@ -18,9 +18,7 @@ def minimum_spanning_tree(data, k = 3, q = 1.5, f = 3):
     
     Returns:
         clustered_data((m x (n + 1)) 2-d numpy array): the data set with one more column that contains the vector's cluster
-        centroids_new((k x n)2-d numpy array): contains the k = no_of_clusters centroids with n features
-        centroids_history((l x 2) 2-d numpy array): an array to keep the previous positions of the centroids for 
-                                                    better visualisation of the result. 
+        no_of_clusters(integer): the number of clusters
 
     '''
     N = reduce(lambda x, y: x * y, data.shape[:-1]) # number of vectors CHANGE : N = len(data)
@@ -124,8 +122,6 @@ def minimum_spanning_tree(data, k = 3, q = 1.5, f = 3):
     
     # Visual debugging
     #plot_MST_for_debug(clustered_data, MST, inconsistent, x_list, y_list)
-    print(clustered_data)
-    print(no_of_clusters)
     return clustered_data, no_of_clusters
 
     
@@ -150,7 +146,7 @@ def _dfs_util(MST, s, visited_nodes, cluster_id, data):
     
         
 def _recursion_util(nodes, k, list_of_weights, MST):
-    ''' A utility recursive method used in order to gather the weights of an edges' 
+    ''' A utility recursive method used in order to gather the weights of an edge's 
         neighborhoud edges.
         
         Parameters:

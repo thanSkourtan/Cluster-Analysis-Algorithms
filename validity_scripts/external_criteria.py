@@ -9,7 +9,7 @@ from graph_theory import *
 
 def external_indices(data, external_data_info):
     '''Calculates three indices (rand statistic, jaccard coefficient, Fowlkes and Mallows) based on a matrix P
-       that shows the simmilarity between the clustering under consideration and an external clustering. Also
+       that shows the similarity between the clustering under consideration and an external clustering. Also
        calculates the Hubert's Gamma Statistic for matrices X and Y, where X (i,j) = 1 if i, j are in the same cluster
        in the clustering under consideration, 0 otherwise and  Y(i,j) = 1 if i, j are in the same cluster
        in the external clustering,  0 otherwise. 
@@ -45,8 +45,10 @@ def external_indices(data, external_data_info):
         P_same_cluster_indices = np.where(external_data_info  == external_data_info[i])
         
         # Build the arrays X, Y, to be used in the calculation of Hubert's Gamma
-        X[i, C_same_cluster_indices[0]] = X[C_same_cluster_indices[0], i] = 1
-        Y[i, P_same_cluster_indices[0]] = Y[P_same_cluster_indices[0], i] = 1
+        #X[i, C_same_cluster_indices[0]] = X[C_same_cluster_indices[0], i] = 1
+        #Y[i, P_same_cluster_indices[0]] = Y[P_same_cluster_indices[0], i] = 1
+        X[i, C_same_cluster_indices[0]] = 1
+        Y[i, P_same_cluster_indices[0]] = 1
         
         # Convert to sets so as to use set operations
         C_set = set(C_same_cluster_indices[0])
@@ -80,17 +82,18 @@ def external_indices(data, external_data_info):
     for i in range(N):
         total_sum += np.sum(X[i, i + 1:] * Y[i, i + 1:])
     gamma =  total_sum / M
-    
+
     return rand_statistic, jaccard_coefficient, fowlkes_and_mallows, gamma
 
 def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
     ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
-        calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
+        calls the appropriate functions in order to cluster each distribution and calculate the external indices.
         
     Parameters:
         data((m x n) 2-d numpy array): a data set of m instances and n features
         no_of_clusters(integer): the number of clusters
-        external_data_info(list): the external clustering results
+        external_data_info(list): a list containing the cluster id for each of the vector of the dataset
+        algorithm: the algorithm function to be used to cluster the data
     
     Returns:
         list_of_indices(list): the calculated indices of all the monte carlo sample distributions
@@ -130,7 +133,7 @@ def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
                 continue
         elif algorithm == MST.minimum_spanning_tree:
             X, no_of_clusters = algorithm(random_data)
-        elif algorithm == MST_Eld_Heg_Var.minimum_spanning_tree_variation:
+        elif algorithm == DTA.minimum_spanning_tree_variation:
             X, no_of_clusters = algorithm(random_data)
             
             
@@ -143,7 +146,7 @@ def monte_carlo(data, no_of_clusters, external_data_info, algorithm):
 
 
 def significance_calc(initial_indices, list_of_indices):
-    ''' Calculates z-statistic for initial_indices with regards to the normal distribution of list_of_gammas
+    ''' Calculates z-statistic for initial_indices with regards to the normal distribution of list_of_indices
         the p_value of the z-statistic and based on the results accepts or rejects the null hypothesis of 
         randomness.
         

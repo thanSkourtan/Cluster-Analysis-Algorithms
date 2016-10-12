@@ -18,6 +18,18 @@ def insert_clusters(original_image, seg_file):
     ''' A function that takes the seg format files along with the original image 
         and returns the image as a numpy array, ALONG with the externaly provided 
         clusters (called segments in the seg file).
+        
+    Parameters:
+        original_image(string): the name of the original image. It must be placed 
+                                into the images folder
+        
+        seg_file(string): the name of the .seg file with the human segmented results.
+                          It must be placed into the images folder
+    
+    Returns:
+        clustered_image(numpy 3-d array): the .seg file in the form of a 3-d numpy 
+                                         array which contains the segment id for each pixel.
+        
     '''
     # Find the project's directory and get the files
     this_file = os.path.abspath(inspect.getfile(inspect.currentframe()))
@@ -40,6 +52,18 @@ def insert_clusters(original_image, seg_file):
     
     
 def rand_index_calculation(X_, external_info):
+    ''' Calculates the rand index of two different clustering results. The matrices provided as arguments 
+        must be contain at least 5000 elements. Instead of comparing all elements, the function chooses 
+        5000 element uniformingly distributed in the input matrices and perform its calculations solely on them.
+        
+    Parameters:
+        X_(numpy array): the first clustering result as a numpy array
+        external_info(numpy array): the second clustering result as a numpy array
+    
+    Returns:
+        rand index(floag): the value of the rand index
+        
+    '''
     initial_shape = list(X_.shape)
     N = reduce(lambda x, y: x * y, X_.shape[:-1])
     m = X_.shape[-1] 
@@ -71,7 +95,17 @@ def rand_index_calculation(X_, external_info):
 
 
 def merging_procedure(image, threshold):
+    ''' Takes a clustered image as a numpy 3-D array, containing the cluster id for each pixel, and transforms it
+        in such a way that small clusters are merged into their neighbourhood ones.
+        
+    Parameters:
+        image(3-D numpy array): array containing the cluster ids before the merge procedure
+        threshold(integer): the user defined threshold for the maximum number of pixels allowed in a recursion
     
+    Returns:
+        image(3-D numpy array): array containing the cluster ids after the merge procedure
+        
+    '''
 
     N = image.shape[0]
     m = image.shape[1]
@@ -107,6 +141,17 @@ def merging_procedure(image, threshold):
 
 
 def _moves(y, x):
+    ''' Private function that takes the coordinates of the current position as arguments and calculates 
+        the next positions.  
+    
+    Parameters:
+        y(integer): the 'vertical coordinate' of the current pixel of the image 
+        x(integer): the 'horizontal coordinate' of the current pixel of the image 
+    
+    Returns:
+        list_of_new_positions(list): a list of tuples of length 2 containing all the next possible pixels on 
+                                     the image, either eligible or not
+    '''
     moves = [(0,1), (1,0), (1,1), (-1, -1), (-1, 0),(-1, 1),(0,-1),(1,-1) ]
     list_of_new_positions = []
     for move in moves:
@@ -114,6 +159,19 @@ def _moves(y, x):
     return list_of_new_positions
 
 def _constraints(y, x, N, m): 
+    ''' Private function that takes the coordinates of a position as arguments and calculates 
+        whether it is eligible or not. Please note that in order to process an image we reshape it to 2 dimensions
+    
+    Parameters:
+        y(integer): the 'vertical coordinate' of the position of the image 
+        x(integer): the 'horizontal coordinate' of the position of the image 
+        N(integer): the length of the second dimension of the image
+        m(integer): the length of the first dimension of the image
+    
+    Returns:
+        list_of_new_positions(list): a list of tuples of length 2 containing all the next possible pixels on 
+                                     the image, either eligible or not
+    '''
     if y >= N or x >= m:
         return False 
     elif y < 0 or x < 0:
@@ -122,7 +180,25 @@ def _constraints(y, x, N, m):
         return True
 
 def _dfs_util(image, y, x, N, m, visited, pixels_cluster, counter, dominant_cluster_list, threshold):
+    ''' Private function that implements the depth first search algorithms on the image by visiting pixels that
+        belong to the same cluster. It also returns the cluster that appears most often in the neighborhood pixels.
+        
+    Parameters:
+        image(numpy array): the 2-D image array
+        y(integer): the 'vertical coordinate' of the current position of the image 
+        x(integer): the 'horizontal coordinate' of the current position of the image 
+        N(integer): the length of the second dimension of the image
+        m(integer): the length of the first dimension of the image
+        visited(numpy array): a 2-D array to hold the several stages of a pixel
+        pixels_cluster(integer): the cluster id of the current pixel 
+        counter(integer): a counter to measure the recursion depth
+        dominant_cluster_list(numpy array): a list to count the prevailing cluster of the neighbourhood pixels
+        threshold(integer): the user defined threshold for the maximum number of pixels allowed in a recursion
     
+    Returns:
+        list_of_new_positions(list): a list of tuples of length 2 containing all the next possible pixels on 
+                                     the image, either eligible or not
+    '''
     if counter > threshold:
         return max_integer, []
     

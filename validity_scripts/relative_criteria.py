@@ -12,31 +12,26 @@ from functools import reduce
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 def relative_validity_hard_sequential(X):
-    ''' Constructs the framework into which successive executions of the 
-        algorithm take place
+    ''' Defines the several values of the BSAS parameter. Then conducts successive executions of the algorithm by passing to it 
+        those values and calculates all the proper relative indices.
         
         Parameters:
-        X((m x n) 2-d numpy array): a data set of m instances and n features
-        no_of_clusters: the number of clusters
+            X((N x m) numpy array): a data set of N instances and m features
         
         Returns:
-        no_of_clusters_list: the different number of clusters tried
-        DI, DB, SI, GI : the arrays holding the values of the four indices
+            no_of_threshold_values: the different values of the threshold parameter 
+            DI, DB, SI: the arrays holding the values of the relative indices
     '''
     # Initialization
-    
     threshold, bins = BSAS.thresholding_BSAS(X)
     threshold_index = np.where(bins == threshold)[0][0]
     
     # Finds the threshold values against which to run the BSAS algorithm
     number_of_threshold_values = 10
     if threshold_index >= number_of_threshold_values:
-        no_of_threshold_values = [bins[i] for i in range(threshold_index - number_of_threshold_values, threshold_index + number_of_threshold_values)]
+        no_of_threshold_values = [bins[i] for i in range(threshold_index - number_of_threshold_values, min(threshold_index + number_of_threshold_values, len(bins) - 1))]
     else:
-        number_of_threshold_values = threshold_index 
-        no_of_threshold_values = [bins[i] for i in range(threshold_index - number_of_threshold_values, threshold_index + number_of_threshold_values)]
-    
-    #no_of_clusters_list = [i for i in range(2, 11)]
+        no_of_threshold_values = [bins[i] for i in range(0, threshold_index + threshold_index)]
     
     DI = np.zeros(len(no_of_threshold_values))
     DB = np.zeros(len(no_of_threshold_values))
@@ -44,14 +39,12 @@ def relative_validity_hard_sequential(X):
 
 
     for i, threshold_values in tqdm(enumerate(no_of_threshold_values)): # no_of_clusters
-        
+    
         X_, centroids_BSAS, total_clusters_ = BSAS.basic_sequential_scheme(X, threshold = threshold_values)
-        
         
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids_BSAS)
         SI[i] = silhouette_index(X_)
-
     
     return no_of_threshold_values, DI, DB, SI
 
@@ -60,25 +53,36 @@ def relative_validity_hard_sequential(X):
 
 
 def relative_validity_TTSS(X):
+    ''' Defines the several values of the TTSS parameters. Then conducts successive executions of the algorithm by passing to it 
+        those values and calculates all the proper relative indices.
+        
+        Parameters:
+            X((N x m) numpy array): a data set of N instances and m features
+        
+        Returns:
+            no_of_threshold_values1: the different values of the threshold1 parameter 
+            no_of_threshold_values2: the different values of the threshold2 parameter 
+            DI, DB, SI: the arrays holding the values of the relative indices
+    '''
     # Initialization
     threshold1_value, threshold2_value, bins = TTSS.thresholding_TTSS(X)
     threshold_index1 = np.where(bins == threshold1_value)[0][0]
     threshold_index2 = np.where(bins == threshold2_value)[0][0]
     
     # Finds the threshold values against which to run the BSAS algorithm
-    range_of_threshold_values = 20
+    range_of_threshold_values = 4
     if threshold_index1 >= range_of_threshold_values:
-        no_of_threshold_values1 = [bins[i] for i in range(threshold_index1 - range_of_threshold_values, threshold_index1 + range_of_threshold_values)]
+        no_of_threshold_values1 = [bins[i] for i in range(threshold_index1 - range_of_threshold_values, min(threshold_index1 + range_of_threshold_values, len(bins) - 1))]
     else:
         range_of_threshold_values = threshold_index1 - 1
-        no_of_threshold_values1 = [bins[i] for i in range(threshold_index1 - range_of_threshold_values, threshold_index1 + range_of_threshold_values)]
+        no_of_threshold_values1 = [bins[i] for i in range(threshold_index1 - range_of_threshold_values, min(threshold_index1 + range_of_threshold_values, len(bins) - 1))]
     
-    range_of_threshold_values = 20
+    range_of_threshold_values = 6
     if threshold_index2 >= range_of_threshold_values:
-        no_of_threshold_values2 = [bins[i] for i in range(threshold_index2 - range_of_threshold_values, threshold_index2 + range_of_threshold_values)]
+        no_of_threshold_values2 = [bins[i] for i in range(threshold_index2 - range_of_threshold_values, min(threshold_index2 + range_of_threshold_values, len(bins) - 1))]
     else:
         range_of_threshold_values = threshold_index1 - 1
-        no_of_threshold_values2 = [bins[i] for i in range(threshold_index2 - range_of_threshold_values, threshold_index2 + range_of_threshold_values)]
+        no_of_threshold_values2 = [bins[i] for i in range(threshold_index2 - range_of_threshold_values, min(threshold_index2 + range_of_threshold_values, len(bins) - 1))]
     
     
     N = reduce(lambda x, y: x * y, X.shape[:-1]) 
@@ -119,6 +123,17 @@ def relative_validity_TTSS(X):
 
 
 def relative_validity_hard_graph(X):
+    ''' Defines the several values of the MST parameters. Then conducts successive executions of the algorithm by passing to it 
+        those values and calculates all the proper relative indices.
+        
+        Parameters:
+            X((N x m) numpy array): a data set of N instances and m features
+        
+        Returns:
+            no_of_k_list: the different values of the k parameter 
+            no_of_f_list: the different values of the f parameter 
+            DI, SI: the arrays holding the values of the relative indices
+    '''
     # Initialization
     no_of_k_list = [i for i in np.linspace(2, 10, 9)]
     no_of_f_list = [i for i in np.linspace(1.5, 3.5, 6)]
@@ -179,16 +194,15 @@ def relative_validity_hard_large_data(X):
 
 
 def relative_validity_hard(X):
-    ''' Constructs the framework into which successive executions of the 
-        algorithm take place
+    ''' Defines the several values of the kmeans parameter. Then conducts successive executions of the algorithm by passing to it 
+        those values and calculates all the proper relative indices.
         
         Parameters:
-        X((m x n) 2-d numpy array): a data set of m instances and n features
-        no_of_clusters: the number of clusters
+            X((N x m) numpy array): a data set of N instances and m features
         
         Returns:
-        no_of_clusters_list: the different number of clusters tried
-        DI, DB, SI, GI : the arrays holding the values of the four indices
+            no_of_clusters_list: the different values of the clusters number
+            DI, DB, SI, GI: the arrays holding the values of the relative indices
     '''
     # Initialization
     no_of_clusters_list = [i for i in range(2, 11)]
@@ -218,9 +232,6 @@ def relative_validity_hard(X):
         X_, centroids, centroids_history = kmeans_clustering.kmeans(X, total_clusters, centroids_initial = centroids)
         
         
-        plot_data(X_, total_clusters, centroids, centroids_history)
-        plt.show()
-        
         DI[i] = Dunn_index(X_)
         DB[i] = Davies_Bouldin(X_, centroids)
         SI[i] = silhouette_index(X_)
@@ -230,17 +241,16 @@ def relative_validity_hard(X):
 
 
 def relative_validity_fuzzy(X):
-    ''' Constructs the framework into which successive executions of the 
-        algorithm take place
+    ''' Defines the several values of the fuzzy parameter. Then conducts successive executions of the algorithm by passing to it 
+        those values and calculates all the proper relative indices.
         
         Parameters:
-        X((m x n) 2-d numpy array): a data set of m instances and n features
-        no_of_clusters: the number of clusters
+            X((N x m) numpy array): a data set of N instances and m features
         
         Returns:
-        no_of_clusters_list: the different number of clusters tried
-        values_of_q: the different values of q that were tried.
-        PC, PE, XB, FS : the arrays holding the values of the four indices
+            no_of_clusters_list: the different values of the clusters number
+            values_of_q: the different values of the q parameter
+            PC, PE, XB, FS: the arrays holding the values of the relative indices
     '''
     # Initialization
     no_of_clusters_list = [i for i in range(2, 11)]
@@ -258,6 +268,7 @@ def relative_validity_fuzzy(X):
     PE = np.zeros((len(no_of_clusters_list), len(values_of_q)))
     XB = np.zeros((len(no_of_clusters_list), len(values_of_q)))
     FS = np.zeros((len(no_of_clusters_list), len(values_of_q)))
+    #cost = np.zeros((len(no_of_clusters_list), len(values_of_q)))
     
     for i, total_clusters in tqdm(enumerate(no_of_clusters_list)): # no_of_clusters
         # IMPORTANT: The centroids must remain the same for every run of the algorithm with the same no_of_clusters
@@ -273,29 +284,35 @@ def relative_validity_fuzzy(X):
             PE[i, j] = partition_entropy(X, partition_matrix)
             XB[i, j] = Xie_Beni(X, centroids, partition_matrix)
             FS[i, j] = fukuyama_sugeno(X, centroids, partition_matrix, q = 2)   
+            #cost[i, j] = cost_calc(X, partition_matrix, centroids)
             
     return no_of_clusters_list, values_of_q, PC, PE, XB, FS
 
 
+# measuring the total cost
+def cost_calc(X, partition_matrix, centroids):
+    cost = 0
+    for i, d in enumerate(X):
+        for j, k in enumerate(centroids):
+            cost += partition_matrix[i, j] * euclidean_distance(d[:2].reshape(1,2), k) 
+    return cost
+
 
 def relative_validity_possibilistic(X):
-    ''' Constructs the framework into which successive executions of the 
-        algorithm take place
+    ''' Defines the several values of the possibilistic parameter. Then conducts successive executions of the algorithm by passing to it 
+        those values and calculates all the proper relative indices.
         
         Parameters:
-        X((m x n) 2-d numpy array): a data set of m instances and n features
-        no_of_clusters: the number of clusters
+            X((N x m) numpy array): a data set of N instances and m features
         
         Returns:
-        no_of_clusters_list: the different number of clusters tried
-        values_of_q: the different values of q that were tried.
-        PC, PE, XB, FS : the arrays holding the values of the four indices
+            no_of_clusters_list: the different values of the clusters number
+            values_of_q: the different values of the q parameter
+            PC, PE, XB, FS: the arrays holding the values of the relative indices
     '''
     # Initialization
-    #no_of_clusters_list = [i for i in range(2, 11)]
-    no_of_clusters_list = [13,16,20]
-    #values_of_q = [1.25, 1.5, 1.75]
-    values_of_q = [1.25]
+    no_of_clusters_list = [i for i in range(2, 11)]
+    values_of_q = [1.25, 1.5, 1.75]
     
     N = reduce(lambda x, y: x * y, X.shape[:-1]) 
     m = X.shape[-1] 
@@ -343,7 +360,7 @@ def Dunn_index(X):
     ''' Calculates the Dunn index of a clustered dataset.
     
         Parameters: 
-        X: The dataset along with the information about clusters in the last column.
+        X((N x m + 1) numpy array): a clustered data set of N instances, m features and the cluster id at the last column of each vector
         
         Returns:
         The Dunn index
@@ -353,7 +370,8 @@ def Dunn_index(X):
     N = len(X)
     m = len(X[0]) - 1
     clusters = np.unique(X[:, m])
-    if len(clusters) <= 1: return np.nan #TODO: change with np.nan
+    if len(clusters) <= 1: 
+        return np.nan
 
     min_cluster_distance = max_integer
     max_cluster_diameter = -max_integer - 1
@@ -384,16 +402,16 @@ def Dunn_index(X):
 
 
 def Davies_Bouldin(X, centroids):
-    ''' Calculates the Dunn index of a clustered dataset. Whereas in Dunn index the distance between clusters is 
+    ''' Calculates the Davies Bouldin index of a clustered dataset. Whereas in Dunn index the distance between clusters is 
         the distance between the closest vectors of the clusters, in Davies Bouldin the same distance is the 
         distance between the centroids.
     
         Parameters: 
-        X: The dataset along with the information about clusters in the last column.
+        X((N x m + 1) numpy array): a clustered data set of N instances, m features and the cluster id at the last column of each vector
         centroids: The centroids returned from the clustering algorithm
         
         Returns:
-        The Dunn index
+        The Davies Bouldin index
     '''
     # If a centroids has not been used, the index is implemented in such a way that it is skipped
     
@@ -441,7 +459,7 @@ def silhouette_index(X):
     ''' Calculates the silhouette index of a clustered dataset. 
     
         Parameters: 
-        X: The dataset along with the information about clusters in the last column.
+        X((N x m + 1) numpy array): a clustered data set of N instances, m features and the cluster id at the last column of each vector
         
         Returns:
         The silhouette index
@@ -510,7 +528,7 @@ def _gap_index_calculation(X):
     ''' Calculates the log(W) for the provided dataset.
     
         Parameters: 
-        X: The dataset along with the information about clusters in the last column.
+        X((N x m + 1) numpy array): a clustered data set of N instances, m features and the cluster id at the last column of each vector
         
         Returns:
         The log(W)
@@ -540,7 +558,16 @@ def _gap_index_calculation(X):
 
 
 def gap_index(X, no_of_clusters, algorithm):
+    ''' Calculates the Gap index of a clustered dataset.
     
+        Parameters: 
+        X((N x m + 1) numpy array): a clustered data set of N instances, m features and the cluster id at the last column of each vector
+        no_of_clusters: the number of clusters
+        algorithm: the function object representing the algorithm that called the function
+        
+        Returns:
+        The Gap index
+    '''
     log_W = _gap_index_calculation(X)
     # Create an array to hold the logW values of the 100 monte carlo simulations
     log_W_sample = np.zeros((100))
@@ -581,7 +608,7 @@ def Xie_Beni(X, centroids, partition_matrix):
     ''' Calculates the Xie Beni index.
     
     Parameters:
-        X((m x n) 2-d numpy array): a data set of m instances and n features
+        X((N x m + 1) numpy array): a clustered data set of N instances, m features and the cluster id at the last column of each vector
         centroids: the value of the centroids after running a clustering algorihtm on the data set
         partition_matrix: the partition matrix
     
@@ -613,7 +640,17 @@ def Xie_Beni(X, centroids, partition_matrix):
 
 
 def fukuyama_sugeno(X, centroids, partition_matrix, q = 2):
-    ''' Calculates the fukuyama sugeno index
+    ''' Calculates the fukuyama sugeno index.
+    
+    Parameters:
+        X((N x m + 1) numpy array): a clustered data set of N instances, m features and the cluster id at the last column of each vector
+        centroids: the value of the centroids after running a clustering algorihtm on the data set
+        partition_matrix: the partition matrix
+    
+    Returns:
+        total_sum(float): the value of the fukuyama sugeno index
+        
+    Reference: Pattern Recognition, S. Theodoridis, K. Koutroumbas
     '''
     w = np.mean(X, axis = 0)
     total_sum = 0.

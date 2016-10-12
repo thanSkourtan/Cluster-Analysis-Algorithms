@@ -11,12 +11,11 @@ def possibilistic(data, no_of_clusters, ita, centroids_initial = None, q = 1.25)
         no_of_clusters(integer): the number of clusters
         ita(list): contains the values of the ita parameter for every cluster
         centroids_initial(): the optional initial values for the centroids
-        q(integer): fuzzifier parameter
+        q(float): fuzzifier parameter
     
     Returns:
         data((m x (n + 1)) 2-d numpy array): the data set with one more column that contains the vector's cluster
         centroids_new((k x n)2-d numpy array): contains the k = no_of_clusters centroids with n features
-        ita(float): a parameter used in possibilistic clustering.
         centroids_history((l x 2) 2-d numpy array): an array to keep the previous positions of the centroids for 
                                                     better visualisation of the result. 
         typicality_matrix ((n x 2) 2-d numpy array): the matrix containing the weights which depict the typicality

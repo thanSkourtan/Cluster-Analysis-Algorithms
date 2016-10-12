@@ -41,7 +41,7 @@ class Test(unittest.TestCase):
         
         plt.show()
     
-    @unittest.skip("no")
+    #@unittest.skip("no")
     def testCircles(self):
 
         # Create the dataset
@@ -146,7 +146,7 @@ class Test(unittest.TestCase):
         plt.show()  
     
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testImageSegmentation(self):
         image = ndimage.imread('..//..//images//181091.jpg')
         image = image.astype(np.int32, copy = False)

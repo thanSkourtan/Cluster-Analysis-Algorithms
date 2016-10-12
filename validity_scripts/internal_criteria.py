@@ -1,20 +1,21 @@
 from scipy.stats import norm
 from cost_function_optimization import fuzzy_clustering, possibilistic_clustering, kmeans_clustering
 from sequential import BSAS, TTSS
-from graph_theory import MST, MST_Eld_Heg_Var
+from graph_theory import MST, DTA
 import numpy as np
 from tqdm import tqdm
+
 
 
 euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2), axis = 1).reshape((len(data), 1)))
 
 def gamma(data):
-    ''' Calculates the Hubert's Gamma Statistic for the proximity matrix P and Y, where Y (i,j) = 0 
-        if i, j are in the same cluster, 1 otherwise. These inputs are fixed for the internal criteria case
-        so they are integrated into this function.
+    ''' Calculates the Hubert's Gamma Statistic for the proximity matrix P and matrix Y, where Y (i,j) = 1 
+        if i, j are in the same cluster, 0 otherwise. These matrices are fixed for the internal criteria case
+        so they are integrated into this function, rather than been provided as arguments.
     
     Parameters:
-        data((m x n) 2-d numpy array): a data set of m instances and n features
+        data((N x m) 2-d numpy array): a data set of N instances and m features
     
     Returns:
         g(float): the gamma index for P, Y
@@ -49,11 +50,12 @@ def gamma(data):
 
 def monte_carlo(data, no_of_clusters, algorithm):
     ''' Creates 100 (could be set as argument) sampling distributions of uniformingly distributed data and
-        calls the appropriate functions in order to cluster each distribution and calculate its Gamma statistic.
+        calls the algorithm passed as argument in order to cluster each distribution and calculate its Gamma statistic.
         
     Parameters:
-        data((m x n) 2-d numpy array): a data set of m instances and n features
+        data((N x m) 2-d numpy array): a data set of N instances and m features
         no_of_clusters(integer): the number of clusters
+        algorithm: the algorithm function to be used to cluster the data
     
     Returns:
         list_of_gammas(list): the Gamma statistics of all the monte carlo sample distributions
@@ -93,7 +95,7 @@ def monte_carlo(data, no_of_clusters, algorithm):
                 continue
         elif algorithm == MST.minimum_spanning_tree:
             X, no_of_clusters = algorithm(random_data)
-        elif algorithm == MST_Eld_Heg_Var.minimum_spanning_tree_variation:
+        elif algorithm == DTA.minimum_spanning_tree_variation:
             X, no_of_clusters = algorithm(random_data)
 
         list_of_gammas.append(gamma(X))
@@ -137,7 +139,7 @@ def internal_validity(data, no_of_clusters, algorithm):
         appropriate order. It could be defined as the only public function of the module. 
         
     Parameters:
-        data((m x n) 2-d numpy array): a data set of m instances and n features
+        data((N x m) 2-d numpy array): a data set of N instances and m features
         no_of_clusters(integer): the number of clusters
     
     Returns:

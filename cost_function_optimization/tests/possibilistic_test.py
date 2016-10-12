@@ -30,7 +30,7 @@ class Test(unittest.TestCase):
 
         # Plotting
         plot_data(X, clusters_number_to_execute, centroids, centroids_history)
-        
+        '''
         # Examine Cluster Validity with statistical tests
         initial_gamma, list_of_gammas, result = internal_criteria.internal_validity(X, no_of_clusters, possibilistic_clustering.possibilistic)
         initial_indices, list_of_indices, result_list = external_criteria.external_validity(X, no_of_clusters, y,  possibilistic_clustering.possibilistic)
@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
         # Histogram of gammas from internal criteria 
         hist_internal_criteria(initial_gamma, list_of_gammas, result)
         hist_external_criteria(initial_indices, list_of_indices, result_list)
-        
+        '''
         plt.show()
         
     @unittest.skip("no")
@@ -96,7 +96,7 @@ class Test(unittest.TestCase):
     # clustering.
     # No relative indices for possibilistic
     
-    @unittest.skip('no')
+    #@unittest.skip('no')
     def testRelativeBlobs(self):
         no_of_clusters= 4
         
@@ -151,7 +151,7 @@ class Test(unittest.TestCase):
         plt.show()  
     
     
-    #@unittest.skip('no')
+    @unittest.skip('no')
     def testImageSegmentation(self):
         image = ndimage.imread('..//..//images//181091.jpg')
         image = image.astype(np.int32, copy = False)
