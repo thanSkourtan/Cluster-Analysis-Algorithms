@@ -6,6 +6,7 @@ from functools import reduce
 from sys import maxsize as max_integer
 import matplotlib.pyplot as plt
 from utility.plotting_functions import *
+import time
 
 '''
 Module of utility functions set to work with the image repository of 
@@ -152,10 +153,12 @@ def _moves(y, x):
         list_of_new_positions(list): a list of tuples of length 2 containing all the next possible pixels on 
                                      the image, either eligible or not
     '''
+    
     moves = [(0,1), (1,0), (1,1), (-1, -1), (-1, 0),(-1, 1),(0,-1),(1,-1) ]
     list_of_new_positions = []
     for move in moves:
-        list_of_new_positions.append((y + move[0], x + move[1]))    
+        list_of_new_positions.append((y + move[0], x + move[1]))
+
     return list_of_new_positions
 
 def _constraints(y, x, N, m): 

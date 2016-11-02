@@ -17,7 +17,7 @@ euclidean_distance = lambda data, point: np.sqrt(np.sum(np.power(data - point, 2
 
 class Test(unittest.TestCase):
 
-    #@unittest.skip("no")
+    @unittest.skip("no")
     def testBlobs(self):
         no_of_clusters = 4
         
@@ -147,13 +147,13 @@ class Test(unittest.TestCase):
         plt.show()
     
     
-    @unittest.skip('no')
+    #@unittest.skip('no')
     def testImageSegmentation(self):
         image = ndimage.imread('..//..//images//181091.jpg')
         image = image.astype(np.int32, copy = False)
         
         # Algorithm execution. We run BSAS first to get estimates for the centroids
-        number_of_clusters = 28
+        number_of_clusters = 3
         clustered_data, centroids, total_clusters = BSAS.basic_sequential_scheme(image)
         X_, centroids, centroids_history = kmeans_clustering.kmeans(image, no_of_clusters = number_of_clusters, centroids_initial = centroids)
 
